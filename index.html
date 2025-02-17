@@ -1,374 +1,594 @@
-<!DOCTYPE html>    
-<html lang="zh-CN">    
-<head>    
-    <meta charset="UTF-8">    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-    <title>贤の神域</title>    
-    <style>    
-        * {    
-            margin: 0;    
-            padding: 0;    
-            box-sizing: border-box;    
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贤の神域</title>
+    <style>
+        /* 原有样式保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        body {    
-            font-family: '微软雅黑', sans-serif;    
-            line-height: 1.6;    
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a8a4e6;
+            --accent-color: #ff7675;
+            --gradient-bg: linear-gradient(135deg, #6c5ce7 0%, #a8a4e6 100%);
         }
 
-        nav {    
-            background: #333;    
-            color: white;    
-            padding: 1rem;    
+        body {
+            font-family: 'Segoe UI', '微软雅黑', sans-serif;
+            line-height: 1.6;
+            background: var(--gradient-bg);
+            min-height: 100vh;
         }
 
-        nav ul {    
-            display: flex;    
-            list-style: none;    
-            gap: 2rem;    
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        nav a {    
-            color: white;    
-            text-decoration: none;    
-            transition: color 0.3s ease;    
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+            align-items: center;
         }
 
-        nav a:hover {    
-            color: #ff69b4;    
+        nav a {
+            color: #2d3436;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        main {    
-            max-width: 1200px;    
-            margin: 0 auto;    
-            padding: 2rem;    
+        nav a:hover {
+            color: var(--primary-color);
+            transform: translateY(-2px);
         }
 
-        .hero {    
-            text-align: center;    
-            padding: 4rem 0;    
-            background: #f4f4f4;    
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s;
         }
 
-        .content-section {    
-            margin: 2rem 0;    
-            padding: 2rem;    
-            background: white;    
-            border-radius: 8px;    
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);    
+        nav a:hover::after {
+            width: 100%;
         }
 
-        footer {    
-            background: #333;    
-            color: white;    
-            text-align: center;    
-            padding: 1rem;    
-            position: fixed;    
-            bottom: 0;    
-            width: 100%;    
+        main {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
         }
 
-        #tetris-container {    
-            display: none;    
-            position: fixed;    
-            top: 0;    
-            left: 0;    
-            width: 100%;    
-            height: 100%;    
-            background: rgba(0,0,0,0.9);    
-            z-index: 999;    
+        .forum-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        #tetris-canvas {    
-            position: absolute;    
-            top: 50%;    
-            left: 50%;    
-            transform: translate(-50%, -50%);    
-            border: 2px solid white;    
+        .post-list {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
-        .game-controls {    
-            position: absolute;    
-            bottom: 10%;    
-            left: 50%;    
-            transform: translateX(-50%);    
-            color: white;    
-            text-align: center;    
+        .post-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid var(--primary-color);
         }
 
-        .mobile-controls {    
-            display: none;    
-            position: fixed;    
-            bottom: 20px;    
-            left: 50%;    
-            transform: translateX(-50%);    
-            gap: 10px;    
-            padding: 10px;    
-            background: rgba(0,0,0,0.3);    
-            border-radius: 20px;    
+        .post-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.2);
         }
 
-        .control-btn {    
-            width: 60px;    
-            height: 60px;    
-            border-radius: 50%;    
-            background: rgba(255,255,255,0.3);    
-            border: 2px solid white;    
-            color: white;    
-            font-size: 24px;    
-            touch-action: manipulation;    
+        .post-meta {
+            display: flex;
+            gap: 1rem;
+            color: #636e72;
+            font-size: 0.9em;
+            margin-top: 1rem;
         }
 
-        #score-display {    
-            position: absolute;    
-            top: 20px;    
-            left: 50%;    
-            transform: translateX(-50%);    
-            color: white;    
-            font-size: 24px;    
-            text-shadow: 2px 2px 2px rgba(0,0,0,0.5);    
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
 
-        #close-btn {    
-            position: absolute;    
-            top: 10px;    
-            left: 10px;    
-            background: rgba(255,255,255,0.3);    
-            border: 2px solid white;    
-            color: white;    
-            padding: 5px 15px;    
-            cursor: pointer;    
-            border-radius: 5px;    
+        .tag {
+            background: var(--secondary-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8em;
+            cursor: pointer;
         }
 
-        @media (max-width: 768px) {    
-            .mobile-controls {    
-                display: flex;    
-            }    
-        }    
-    </style>    
-</head>    
-<body>    
-    <nav>    
-        <ul>    
-            <li><a href="#home">首页</a></li>    
-            <li><a href="https://b23. tv/OpHTdxu" target="_blank">b站账号</a></li>    
-            <li><a href="#tetris" onclick="showTetris()">俄罗斯方块</a></li>    
-            <li><a href="#contact">刷新</a></li>    
-        </ul>    
+        .post-form {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: border-color 0.3s;
+            font-size: 1rem;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button[type="submit"] {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        button[type="submit"]:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .profile-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: var(--gradient-bg);
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            
+            main {
+                padding: 1rem;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+
+        .delete-btn {
+            background: #ff7675;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            float: right;
+        }
+    </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#home" onclick="showSection('home')">🏠 首页</a></li>
+            <li><a href="https://b23.tv/OpHTdxu" target="_blank">📺 频道</a></li>
+            <li><a href="#forum" onclick="showSection('forum')">💬 社区</a></li>
+            <li id="auth-links">
+                <a href="#login" onclick="showSection('login')">🔑 登录</a>/
+                <a href="#register" onclick="showSection('register')">🎉 注册</a>
+            </li>
+        </ul>
     </nav>
 
-    <main>    
-        <section class="hero">    
-            <h1>欢迎来到贤の领域</h1>    
-            <p>🤫🤫🤫</p>    
+    <main>
+        <!-- 首页内容 -->
+        <section id="home-section" class="animated">
+            <div class="hero-banner" style="text-align: center; padding: 4rem 0;">
+                <h1 style="font-size: 3rem; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">欢迎来到神之领域，凡人</h1>
+                <p style="color: rgba(255,255,255,0.9); margin-top: 1rem;">🤓🤓🤓</p>
+            </div>
+
+            <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem;">
+                <div class="feature-card" style="background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 15px;">
+                    <h3> bro的服务</h3>
+                    <ul style="list-style: none; margin-top: 1rem;">
+                        <li> 原神代肝</li>
+                        <li> 军火提供</li>
+                        <li>🔮 傻吊人格测试</li>
+                    </ul>
+                </div>
+
+                <div class="news-card" style="background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 15px;">
+                    <h3>📢 最新公告</h3>
+                    <div style="margin-top: 1rem;">
+                        <p> 新增用户等级系统</p>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section class="content-section">    
-            <h2>最新消息</h2>    
-            <p>暮仙州出现噬魂剑持有者</p>    
-        </section>
+        <!-- 论坛模块 -->
+        <div id="forum-section" class="forum-container animated hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>社区话题</h2>
+                <button onclick="showPostForm()" id="new-post-btn" class="hidden">✍️ 发表新帖</button>
+            </div>
 
-        <section class="content-section">    
-            <h2>我的服务</h2>    
-            <ul>    
-                <li>原神代肝</li>    
-                <li>人民币代花</li>    
-                <li>战略支持</li>    
-            </ul>    
-        </section>    
+            <div class="post-filter" style="margin-bottom: 2rem;">
+                <select id="filter-select" onchange="loadPosts()" style="padding: 0.5rem; border-radius: 8px;">
+                    <option value="all">全部话题</option>
+                    <option value="game">游戏讨论</option>
+                    <option value="tech">技术交流</option>
+                    <option value="life">生活分享</option>
+                </select>
+            </div>
+
+            <div class="post-list" id="post-list"></div>
+
+            <div class="post-form hidden" id="post-form">
+                <form onsubmit="return createPost(event)">
+                    <div class="form-group">
+                        <input type="text" id="post-title" placeholder="请输入帖子标题" required>
+                    </div>
+                    <div class="form-group">
+                        <select id="post-category" style="width: auto; padding: 0.5rem;">
+                            <option value="game">游戏讨论</option>
+                            <option value="tech">技术交流</option>
+                            <option value="life">生活分享</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="post-content" rows="6" placeholder="写下你的想法..." required></textarea>
+                    </div>
+                    <button type="submit">发布帖子</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 用户系统 -->
+        <div id="auth-section" class="forum-container animated hidden">
+            <div id="login-form" class="auth-form">
+                <div class="profile-card">
+                    <div class="profile-avatar"></div>
+                    <h3>欢迎回来</h3>
+                    <form onsubmit="return loginUser(event)" style="margin-top: 1.5rem;">
+                        <div class="form-group">
+                            <input type="email" id="login-email" placeholder="电子邮箱" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="login-password" placeholder="密码" required>
+                        </div>
+                        <button type="submit" style="width: 100%;">登录</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="register-form" class="auth-form hidden">
+                <div class="profile-card">
+                    <h3>加入社区</h3>
+                    <form onsubmit="return registerUser(event)" style="margin-top: 1.5rem;">
+                        <div class="form-group">
+                            <input type="email" id="reg-email" placeholder="电子邮箱" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="reg-password" placeholder="密码（至少6位）" required>
+                        </div>
+                        <button type="submit" style="width: 100%;">立即注册</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <div id="tetris-container">    
-        <button id="close-btn" onclick="hideTetris()">关闭游戏</button>    
-        <div id="score-display">得分：0</div>    
-        <canvas id="tetris-canvas" width="240" height="400"></canvas>    
-        <div class="game-controls">    
+    <script>
+        // Firebase配置（需要替换为你的配置）
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-            <div class="mobile-controls">    
-                <button class="control-btn" id="moveLeft">←</button>    
-                <button class="control-btn" id="rotateBtn">↻</button>    
-                <button class="control-btn" id="moveRight">→</button>    
-                <button class="control-btn" id="dropBtn">↓</button>    
-            </div>    
-        </div>    
-    </div>
+        // 初始化Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-    <footer>    
-        <p>&copy; 2025 贤の神域 版权所有</p>    
-    </footer>
+        let currentUser = null;
+        const USER_LEVELS = { 0: '萌新', 1: '成员', 2: '达人', 3: '长老' };
 
-    <script>    
-        const canvas = document.getElementById('tetris-canvas');    
-        const ctx = canvas.getContext('2d');    
-        const BLOCK_SIZE = 20;    
-        let gameLoop;    
-        let board = Array(20).fill().map(() => Array(12).fill(0));    
-        let score = 0;
-
-        const SHAPES = [    
-            [[1,1,1,1]], [[1,1,1],[0,1,0]], [[1,1,1],[1,0,0]],    
-            [[1,1,1],[0,0,1]], [[1,1],[1,1]], [[1,1,0],[0,1,1]],    
-            [[0,1,1],[1,1,0]]    
-        ];
-
-        const COLORS = [    
-            '#FF0000',    
-            '#00FF00',    
-            '#0000FF',    
-            '#FFFF00',    
-            '#FF00FF',    
-            '#00FFFF',    
-            '#FFA500'    
-        ];
-
-        let currentPiece;    
-        let currentColor;    
-        let posX = 5;    
-        let posY = 0;
-
-        function createPiece() {    
-            const index = Math.floor(Math.random() * SHAPES.length);    
-            currentColor = COLORS[index];    
-            return SHAPES[index];    
+        // 页面切换功能
+        function showSection(sectionId) {
+            document.querySelectorAll('main > *').forEach(el => el.classList.add('hidden'));
+            switch(sectionId) {
+                case 'home': 
+                    document.getElementById('home-section').classList.remove('hidden');
+                    break;
+                case 'forum': 
+                    document.getElementById('forum-section').classList.remove('hidden');
+                    loadPosts();
+                    break;
+                case 'login': 
+                    document.getElementById('auth-section').classList.remove('hidden');
+                    document.getElementById('login-form').classList.remove('hidden');
+                    document.getElementById('register-form').classList.add('hidden');
+                    break;
+                case 'register': 
+                    document.getElementById('auth-section').classList.remove('hidden');
+                    document.getElementById('register-form').classList.remove('hidden');
+                    document.getElementById('login-form').classList.add('hidden');
+                    break;
+            }
         }
 
-        function checkCollision(x, y, piece) {    
-            return piece.some((row, dy) =>     
-                row.some((value, dx) =>     
-                    value && (x + dx < 0 || x + dx >= 12 || y + dy >= 20 || board[y + dy][x + dx])    
-                )    
-            );    
+        // 更新认证状态
+        function updateAuthState() {
+            const authLinks = document.getElementById('auth-links');
+            if (currentUser) {
+                authLinks.innerHTML = `
+                    <span>👤 ${currentUser.email}</span>
+                    <a href="#" onclick="logout()">🚪 退出</a>
+                `;
+                document.getElementById('new-post-btn').classList.remove('hidden');
+            } else {
+                authLinks.innerHTML = `
+                    <a href="#login" onclick="showSection('login')">🔑 登录</a>/
+                    <a href="#register" onclick="showSection('register')">🎉 注册</a>
+                `;
+                document.getElementById('new-post-btn').classList.add('hidden');
+            }
         }
 
-        function draw() {    
-            ctx.fillStyle = '#000';    
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // 用户注册
+        async function registerUser(e) {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
 
-            board.forEach((row, y) => {    
-                row.forEach((value, x) => {    
-                    if (value) {    
-                        ctx.fillStyle = value;    
-                        ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE-1, BLOCK_SIZE-1);    
-                    }    
-                });    
-            });
-
-            ctx.fillStyle = currentColor;    
-            currentPiece.forEach((row, y) => {    
-                row.forEach((value, x) => {    
-                    if (value) {    
-                        ctx.fillRect(    
-                            (posX + x) * BLOCK_SIZE,    
-                            (posY + y) * BLOCK_SIZE,    
-                            BLOCK_SIZE-1,    
-                            BLOCK_SIZE-1    
-                        );    
-                    }    
-                });    
-            });    
-        }
-
-        function gameUpdate() {    
-            if (!checkCollision(posX, posY + 1, currentPiece)) {    
-                posY++;    
-            } else {    
-                currentPiece.forEach((row, y) => {    
-                    row.forEach((value, x) => {    
-                        if (value) board[posY + y][posX + x] = currentColor;    
-                    });    
+            try {
+                // 创建用户
+                const { user } = await auth.createUserWithEmailAndPassword(email, password);
+                
+                // 创建用户文档
+                await db.collection('users').doc(user.uid).set({
+                    email: email,
+                    joinDate: new Date(),
+                    postCount: 0,
+                    level: 0,
+                    displayName: email.split('@')[0] // 默认使用邮箱前缀作为显示名称
                 });
 
-                let lines = 0;    
-                for (let y = board.length - 1; y >= 0; y--) {    
-                    if (board[y].every(cell => cell)) {    
-                        board.splice(y, 1);    
-                        board.unshift(Array(12).fill(0));    
-                        lines++;    
-                        y++;    
-                    }    
-                }    
-                if (lines > 0) {    
-                    score += lines * 100;    
-                    document.getElementById('score-display').textContent = `得分：${score}`;    
-                }
-
-                if (checkCollision(5, 0, currentPiece)) {    
-                    alert(`游戏结束！得分：${score}`);    
-                    hideTetris();    
-                    return;    
-                }
-
-                currentPiece = createPiece();    
-                posX = 5;    
-                posY = 0;    
-            }    
-            draw();    
+                alert('注册成功！');
+                showSection('login');
+            } catch (error) {
+                alert(`注册失败: ${error.message}`);
+            }
         }
 
-        function showTetris() {    
-            board = Array(20).fill().map(() => Array(12).fill(0));    
-            score = 0;    
-            document.getElementById('score-display').textContent = '得分：0';    
-            document.getElementById('tetris-container').style.display = 'block';    
-            currentPiece = createPiece();    
-            posX = 5;    
-            posY = 0;    
-            if (gameLoop) clearInterval(gameLoop);    
-            gameLoop = setInterval(gameUpdate, 1000);    
+        // 用户登录
+        async function loginUser(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const { user } = await auth.signInWithEmailAndPassword(email, password);
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                
+                currentUser = {
+                    uid: user.uid,
+                    email: user.email,
+                    ...userDoc.data()
+                };
+
+                updateAuthState();
+                showSection('forum');
+                alert(`欢迎回来，${USER_LEVELS[currentUser.level]} ${currentUser.displayName}`);
+            } catch (error) {
+                alert(`登录失败: ${error.message}`);
+            }
         }
 
-        function hideTetris() {    
-            document.getElementById('tetris-container').style.display = 'none';    
-            clearInterval(gameLoop);    
+        // 用户退出
+        function logout() {
+            auth.signOut();
+            currentUser = null;
+            updateAuthState();
+            showSection('home');
         }
 
-        document.addEventListener('keydown', event => {    
-            switch(event.keyCode) {    
-                case 37: if (!checkCollision(posX-1, posY, currentPiece)) posX--; break;    
-                case 39: if (!checkCollision(posX+1, posY, currentPiece)) posX++; break;    
-                case 40: if (!checkCollision(posX, posY+1, currentPiece)) posY++; break;    
-                case 38:     
-                    const rotated = rotatePiece();    
-                    if (!checkCollision(posX, posY, rotated)) currentPiece = rotated;    
-                    break;    
-            }    
-            draw();    
+        // 帖子功能
+        async function createPost(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const newPost = {
+                title: document.getElementById('post-title').value,
+                content: document.getElementById('post-content').value,
+                category: document.getElementById('post-category').value,
+                authorId: currentUser.uid,
+                authorName: currentUser.displayName,
+                timestamp: new Date(),
+                likes: [],
+                comments: []
+            };
+
+            try {
+                await db.collection('posts').add(newPost);
+                document.getElementById('post-form').reset();
+                document.getElementById('post-form').classList.add('hidden');
+            } catch (error) {
+                alert(`发布失败: ${error.message}`);
+            }
+        }
+
+        // 加载帖子（实时更新）
+        function loadPosts() {
+            const categoryFilter = document.getElementById('filter-select').value;
+            let query = db.collection('posts').orderBy('timestamp', 'desc');
+
+            if (categoryFilter !== 'all') {
+                query = query.where('category', '==', categoryFilter);
+            }
+
+            query.onSnapshot(snapshot => {
+                const posts = [];
+                snapshot.forEach(doc => {
+                    posts.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                renderPosts(posts);
+            });
+        }
+
+        // 渲染帖子
+        function renderPosts(posts) {
+            const html = posts.map(post => `
+                <div class="post-item animated">
+                    <h3>${post.title} 
+                        ${currentUser?.uid === post.authorId ? 
+                            `<button onclick="deletePost('${post.id}')" class="delete-btn">删除</button>` : ''}
+                    </h3>
+                    <div class="post-meta">
+                        <span>👤 ${post.authorName}</span>
+                        <span>⏰ ${post.timestamp.toDate().toLocaleString()}</span>
+                        <span>🏷️ ${getCategoryLabel(post.category)}</span>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-tags">
+                        <button class="tag" onclick="toggleLike('${post.id}')">
+                            👍 ${post.likes.length} ${post.likes.includes(currentUser?.uid) ? '❤️' : ''}
+                        </button>
+                        <span class="tag">💬 ${post.comments.length}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('post-list').innerHTML = html;
+        }
+
+        // 删除帖子
+        async function deletePost(postId) {
+            if (!confirm('确定要删除这个帖子吗？')) return;
+            try {
+                await db.collection('posts').doc(postId).delete();
+            } catch (error) {
+                alert(`删除失败: ${error.message}`);
+            }
+        }
+
+        // 点赞功能
+        async function toggleLike(postId) {
+            if (!currentUser) return alert('请先登录');
+            
+            const postRef = db.collection('posts').doc(postId);
+            const postDoc = await postRef.get();
+            const likes = postDoc.data().likes;
+
+            if (likes.includes(currentUser.uid)) {
+                await postRef.update({
+                    likes: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                });
+            } else {
+                await postRef.update({
+                    likes: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                });
+            }
+        }
+
+        // 辅助函数
+        function getCategoryLabel(category) {
+            const labels = { 
+                game: '🎮 游戏', 
+                tech: '💻 技术', 
+                life: '🍵 生活' 
+            };
+            return labels[category] || '其他';
+        }
+
+        // 初始化认证监听
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                currentUser = {
+                    uid: user.uid,
+                    email: user.email,
+                    ...userDoc.data()
+                };
+                updateAuthState();
+            } else {
+                currentUser = null;
+                updateAuthState();
+            }
         });
 
-        function rotatePiece() {    
-            const newPiece = currentPiece[0].map((_, i) =>    
-                currentPiece.map(row => row[i]).reverse()    
-            );    
-            for (let offset = 0; offset < newPiece[0].length; offset++) {    
-                if (!checkCollision(posX + offset, posY, newPiece)) {    
-                    posX += offset;    
-                    break;    
-                }    
-            }    
-            return newPiece;    
-        }
-
-        // 移动端控制    
-        ['moveLeft', 'moveRight', 'rotateBtn', 'dropBtn'].forEach(id => {    
-            document.getElementById(id).addEventListener('touchstart', e => {    
-                e.preventDefault();    
-                const actions = {    
-                    moveLeft: () => { if (!checkCollision(posX-1, posY, currentPiece)) posX-- },    
-                    moveRight: () => { if (!checkCollision(posX+1, posY, currentPiece)) posX++ },    
-                    rotateBtn: () => {    
-                        const rotated = rotatePiece();    
-                        if (!checkCollision(posX, posY, rotated)) currentPiece = rotated;    
-                    },    
-                    dropBtn: () => {    
-                        while (!checkCollision(posX, posY+1, currentPiece)) posY++;    
-                        gameUpdate();    
-                    }    
-                };    
-                actions[id]();    
-                draw();    
-            });    
-        });    
-    </script>    
-</body>    
-</html>  
+        // 初始化显示首页
+        showSection('home');
+    </script>
+</body>
+</html>
