@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贤の神域</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: '微软雅黑', sans-serif;
+            line-height: 1.6;
+        }
+
+        nav {
+            background: #333;
+            color: white;
+            padding: 1rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ff69b4;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            background: #f4f4f4;
+        }
+
+        .content-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        #tetris-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 999;
+        }
+
+        #tetris-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid white;
+        }
+
+        .game-controls {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+        }
+
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 10px;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            border: 2px solid white;
+            color: white;
+            font-size: 24px;
+            touch-action: manipulation;
+        }
+
+        #score-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            text-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#home">首页</a></li>
+            <li><a href="https://b23.tv/OpHTdxu" target="_blank">b站账号</a></li>
+            <li><a href="#tetris" onclick="showTetris()">俄罗斯方块</a></li>
+            <li><a href="#contact">刷新</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <h1>欢迎来到贤の领域</h1>
+            <p>🤫🤫🤫</p>
+        </section>
+
+        <section class="content-section">
+            <h2>最新消息</h2>
+            <p>暮仙州出现噬魂剑持有者</p>
+        </section>
+
+        <section class="content-section">
+            <h2>我的服务</h2>
+            <ul>
+                <li>原神代肝</li>
+                <li>人民币代花</li>
+                <li>战略支持</li>
+            </ul>
+        </section>
+    </main>
+
+    <div id="tetris-container">
+        <div id="score-display">得分：0</div>
+        <canvas id="tetris-canvas" width="240" height="400"></canvas>
+        <div class="game-controls">
+            <p>方向键 ←→ 移动 | ↑ 旋转 | ↓ 加速</p>
+            <div class="mobile-controls">
+                <button class="control-btn" id="moveLeft">←</button>
+                <button class="control-btn" id="rotateBtn">↻</button>
+                <button class="control-btn" id="moveRight">→</button>
+                <button class="control-btn" id="dropBtn">↓</button>
+            </div>
+            <button onclick=
+            
+            
+            "hideTetris()">关闭游戏</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 贤の神域 版权所有</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('tetris-canvas');
+        const ctx = canvas.getContext('2d');
+        const BLOCK_SIZE = 20;
+        let gameLoop;
+        let board = Array(20).fill().map(() => Array(12).fill(0));
+        let score = 0;
+
+        const SHAPES = [
+            [[1,1,1,1]], [[1,1,1],[0,1,0]], [[1,1,1],[1,0,0]],
+            [[1,1,1],[0,0,1]], [[1,1],[1,1]], [[1,1,0],[0,1,1]],
+            [[0,1,1],[1,1,0]]
+        ];
+
+        let currentPiece;
+        let posX = 5;
+        let posY = 0;
+
+        function createPiece() {
+            return SHAPES[Math.floor(Math.random() * SHAPES.length)];
+        }
+
+        function checkCollision(x, y, piece) {
+            return piece.some((row, dy) => 
+                row.some((value, dx) => 
+                    value && (x + dx < 0 || x + dx >= 12 || y + dy >= 20 || board[y + dy][x + dx])
+                )
+            );
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        ctx.fillStyle = '#f00';
+                        ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE-1, BLOCK_SIZE-1);
+                    }
+                });
+            });
+
+            ctx.fillStyle = '#f00';
+            currentPiece.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        ctx.fillRect(
+                            (posX + x) * BLOCK_SIZE,
+                            (posY + y) * BLOCK_SIZE,
+                            BLOCK_SIZE-1,
+                            BLOCK_SIZE-1
+                        );
+                    }
+                });
+            });
+        }
+
+        function gameUpdate() {
+            if (!checkCollision(posX, posY + 1, currentPiece)) {
+                posY++;
+            } else {
+                currentPiece.forEach((row, y) => {
+                    row.forEach((value, x) => {
+                        if (value) board[posY + y][posX + x] = 1;
+                    });
+                });
+
+                // 行消除逻辑
+                let lines = 0;
+                for (let y = board.length - 1; y >= 0; y--) {
+                    if (board[y].every(cell => cell)) {
+                        board.splice(y, 1);
+                        board.unshift(Array(12).fill(0));
+                        lines++;
+                        y++;
+                    }
+                }
+                if (lines > 0) {
+                    score += lines * 100;
+                    document.getElementById('score-display').textContent = `得分：${score}`;
+                }
+
+                if (checkCollision(5, 0, currentPiece)) {
+                    alert(`游戏结束！得分：${score}`);
+                    hideTetris();
+                    return;
+                }
+
+                currentPiece = createPiece();
+                posX = 5;
+                posY = 0;
+            }
+            draw();
+        }
+
+        function showTetris() {
+            board = Array(20).fill().map(() => Array(12).fill(0));
+            score = 0;
+            document.getElementById('score-display').textContent = '得分：0';
+            document.getElementById('tetris-container').style.display = 'block';
+            currentPiece = createPiece();
+            posX = 5;
+            posY = 0;
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(gameUpdate, 1000);
+        }
+
+        function hideTetris() {
+            document.getElementById('tetris-container').style.display = 'none';
+            clearInterval(gameLoop);
+        }
+
+        document.addEventListener('keydown', event => {
+            switch(event.keyCode) {
+                case 37: if (!checkCollision(posX-1, posY, currentPiece)) posX--; break;
+                case 39: if (!checkCollision(posX+1, posY, currentPiece)) posX++; break;
+                case 40: if (!checkCollision(posX, posY+1, currentPiece)) posY++; break;
+                case 38: 
+                    const rotated = rotatePiece();
+                    if (!checkCollision(posX, posY, rotated)) currentPiece = rotated;
+                    break;
+            }
+            draw();
+        });
+
+        function rotatePiece() {
+            const newPiece = currentPiece[0].map((_, i) =>
+                currentPiece.map(row => row[i]).reverse()
+            );
+            for (let offset = 0; offset < newPiece[0].length; offset++) {
+                if (!checkCollision(posX + offset, posY, newPiece)) {
+                    posX += offset;
+                    break;
+                }
+            }
+            return newPiece;
+        }
+
+        // 移动端控制
+        ['moveLeft', 'moveRight', 'rotateBtn', 'dropBtn'].forEach(id => {
+            document.getElementById(id).addEventListener('touchstart', e => {
+                e.preventDefault();
+                const actions = {
+                    moveLeft: () => { if (!checkCollision(posX-1, posY, currentPiece)) posX-- },
+                    moveRight: () => { if (!checkCollision(posX+1, posY, currentPiece)) posX++ },
+                    rotateBtn: () => {
+                        const rotated = rotatePiece();
+                        if (!checkCollision(posX, posY, rotated)) currentPiece = rotated;
+                    },
+                    dropBtn: () => {
+                        while (!checkCollision(posX, posY+1, currentPiece)) posY++;
+                        gameUpdate();
+                    }
+                };
+                actions[id]();
+                draw();
+            });
+        });
+    </script>
+</body>
+</html>
