@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塞巴斯蒂安·谢尔顿 - 计数板</title>
+    <style>
+        :root {
+            --primary: #5c7c36; /* 绿褐色外套 */
+            --secondary: #d4a017; /* 琥珀色/地质锤 */
+            --bg: #f4f1ea;
+            --panel: #ffffff;
+            --danger: #d9534f;
+            --shield: #4682b4; /* 护盾蓝 */
+            --text: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10px;
+            user-select: none;
+        }
+        h2, h3 { margin: 0; color: var(--primary); }
+        
+        /* 顶部信息栏 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        .turn-counter {
+            text-align: right;
+        }
+        .turn-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        /* 核心状态网格 */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .card {
+            background: var(--panel);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        /* 让应力条单独占一行 */
+        .card.stress-card {
+            grid-column: span 2; 
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .ctrl-group {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+        button.circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            font-weight: bold;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        button.circle:active { background: #ddd; }
+        
+        /* 应力条 */
+        .stress-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .stress-pip {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            background: #eee;
+            border: 2px solid #ccc;
+            transition: all 0.2s;
+        }
+        .stress-pip.active {
+            background: var(--secondary);
+            border-color: #b8860b;
+            box-shadow: 0 0 8px rgba(212, 160, 23, 0.6);
+        }
+
+        /* 数据面板 */
+        .info-panel {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            border: 1px solid var(--primary);
+        }
+
+        /* 技能区 */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.1s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
+        
+        .btn-passive { background: #e0e0e0; color: #333; }
+        .btn-skill1 { background: var(--primary); color: white; }
+        .btn-skill2 { background: var(--secondary); color: white; }
+        .btn-turn { background: #333; color: white; margin-top: 10px; }
+        
+        .cooldown-overlay {
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            display: none;
+        }
+        .on-cd .cooldown-overlay { display: flex; }
+
+        /* 配置区 */
+        .config-area {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        input[type="number"] {
+            width: 50px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        /* 日志 */
+        .log-box {
+            margin-top: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 0.85em;
+            border-radius: 8px;
+        }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px dashed #eee; padding-bottom: 2px; }
+        .log-turn { color: var(--primary); font-weight: bold; margin-top: 8px; background: #eee; padding: 2px 5px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h3>塞巴斯蒂安</h3>
+        </div>
+        <div class="turn-counter">
+            <small>当前回合</small>
+            <div class="turn-number" id="turnDisplay">1</div>
+        </div>
+    </div>
+
+    <div class="status-grid">
+        <div class="card">
+            <small>❤️ 生命值 (HP)</small>
+            <div class="stat-value" style="color:var(--danger)" id="hpDisplay">140</div>
+            <div class="ctrl-group">
+                <button class="circle" onclick="modHP(-1)">-1</button>
+                <button class="circle" onclick="modHP(-5)">-5</button>
+                <button class="circle" onclick="modHP(1)">+1</button>
+                <button class="circle" onclick="modHP(5)">+5</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <small>🛡️ 共用护盾</small>
+            <div class="stat-value" style="color:var(--shield)" id="shieldDisplay">0</div>
+            <div class="ctrl-group">
+                <button class="circle" onclick="modShield(-1)">-1</button>
+                <button class="circle" onclick="modShield(-5)">-5</button>
+                <button class="circle" onclick="modShield(1)">+1</button>
+                <button class="circle" onclick="modShield(5)">+5</button>
+            </div>
+        </div>
+        
+        <div class="card stress-card">
+            <small>⚡ 应力 (Stress) - [普攻加伤/自身减伤]</small>
+            <div class="stress-container" id="stressVisual">
+                <div class="stress-pip"></div>
+                <div class="stress-pip"></div>
+                <div class="stress-pip"></div>
+            </div>
+            <div class="ctrl-group">
+                <button class="circle" style="width:40px; border-radius:8px;" onclick="modStress(-1)">-1</button>
+                <button class="circle" style="width:40px; border-radius:8px;" onclick="modStress(1)">+1</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div>
+            🔨 普攻伤害: <strong id="atkDisplay">17</strong>
+        </div>
+        <div>
+            🧱 自身减伤: <strong id="dmgReductDisplay">0</strong>
+        </div>
+    </div>
+
+    <div class="actions">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button class="btn btn-passive" onclick="triggerPassive('hit')">
+                被击 (+1应力)
+            </button>
+            <button class="btn btn-passive" onclick="triggerPassive('block')">
+                替挡 (+2应力)
+            </button>
+        </div>
+
+        <button class="btn btn-skill1" id="btnSkill1" onclick="useSkill1()">
+            ① 锤打 (Cost 15HP)
+            <br><small style="font-weight:normal; font-size:0.8em">获得2层应力 | 增加团队护盾</small>
+            <div class="cooldown-overlay" id="cdOverlay1">CD: <span id="cdText1">0</span></div>
+        </button>
+
+        <button class="btn btn-skill2" id="btnSkill2" onclick="useSkill2()">
+            ② 滑坡 (消耗应力)
+            <br><small style="font-weight:normal; font-size:0.8em">爆发伤害 + 晕眩 | 回复10HP</small>
+            <div class="cooldown-overlay" id="cdOverlay2">CD: <span id="cdText2">0</span></div>
+        </button>
+
+        <button class="btn btn-turn" onclick="nextTurn()">
+            ⌛ 结束回合 (CD -1)
+        </button>
+    </div>
+
+    <div class="config-area">
+        <label>队友数量 (含自己?):</label>
+        <input type="number" id="teamSize" value="4" min="1">
+    </div>
+
+    <div class="log-box" id="logBox">
+        <div class="log-entry">系统: 终端已启动。HP:140</div>
+    </div>
+
+    <script>
+        // 角色数据状态
+        let state = {
+            hp: 140, // 已修改为140
+            shield: 0, // 新增护盾值
+            stress: 0,
+            turn: 1,
+            cd1: 0,
+            cd2: 0
+        };
+
+        // DOM 元素获取
+        const ui = {
+            hp: document.getElementById('hpDisplay'),
+            shield: document.getElementById('shieldDisplay'),
+            turn: document.getElementById('turnDisplay'),
+            atk: document.getElementById('atkDisplay'),
+            reduct: document.getElementById('dmgReductDisplay'),
+            stressPips: document.querySelectorAll('.stress-pip'),
+            teamSize: document.getElementById('teamSize'),
+            log: document.getElementById('logBox'),
+            btn1: document.getElementById('btnSkill1'),
+            btn2: document.getElementById('btnSkill2'),
+            cdText1: document.getElementById('cdText1'),
+            cdText2: document.getElementById('cdText2'),
+        };
+
+        // 初始化
+        updateDisplay();
+
+        // --- 核心逻辑函数 ---
+
+        function modHP(amount) {
+            state.hp += amount;
+            log(`HP变更 ${amount > 0 ? '+' : ''}${amount} (当前: ${state.hp})`);
+            updateDisplay();
+        }
+
+        function modShield(amount) {
+            state.shield += amount;
+            if (state.shield < 0) state.shield = 0;
+            log(`护盾变更 ${amount > 0 ? '+' : ''}${amount} (当前: ${state.shield})`);
+            updateDisplay();
+        }
+
+        function modStress(amount) {
+            let oldStress = state.stress;
+            state.stress += amount;
+            // 限制范围 0-3
+            if (state.stress > 3) state.stress = 3;
+            if (state.stress < 0) state.stress = 0;
+            updateDisplay();
+        }
+
+        function triggerPassive(type) {
+            if (type === 'hit') {
+                log(`【沉击-被击】受到攻击，应力 +1`);
+                modStress(1);
+            } else if (type === 'block') {
+                log(`【沉击-援护】为队友挡刀，应力 +2`);
+                modStress(2);
+            }
+        }
+
+        function useSkill1() {
+            if (state.cd1 > 0) return;
+            
+            const teamCount = parseInt(ui.teamSize.value) || 1;
+            const shieldAdd = teamCount * 10;
+
+            log(`>>> 释放技能 ①【锤打】`);
+            
+            state.hp -= 15;
+            log(`消耗 15 HP (剩余: ${state.hp})`);
+            
+            modStress(2);
+            log(`获得 2 层应力`);
+
+            state.shield += shieldAdd;
+            log(`团队护盾增加: +${shieldAdd} (总计: ${state.shield})`);
+            
+            state.cd1 = 3;
+            updateDisplay();
+        }
+
+        function useSkill2() {
+            if (state.cd2 > 0) return;
+            if (state.stress === 0) {
+                alert("没有应力层数，无法释放！");
+                return;
+            }
+
+            const bonusDmg = 2 * state.stress;
+            const totalDmg = 17 + bonusDmg;
+            const consumedStress = state.stress;
+
+            log(`>>> 释放技能 ②【滑坡】(消耗 ${consumedStress} 层应力)`);
+            log(`造成伤害: 17 + ${bonusDmg} = [${totalDmg}] 点`);
+            log(`效果: 目标晕眩1回合`);
+            
+            state.hp += 10;
+            log(`回复 10 HP (当前: ${state.hp})`);
+
+            state.stress = 0;
+            state.cd2 = 4;
+            
+            updateDisplay();
+        }
+
+        function nextTurn() {
+            state.turn++;
+            if (state.cd1 > 0) state.cd1--;
+            if (state.cd2 > 0) state.cd2--;
+            
+            let logMsg = `<div class="log-turn">--- 第 ${state.turn} 回合 ---</div>`;
+            if (state.cd1 === 0 && state.cd1 !== -1) logMsg += `<div>提示: 【锤打】就绪</div>`;
+            if (state.cd2 === 0 && state.cd2 !== -1) logMsg += `<div>提示: 【滑坡】就绪</div>`;
+            
+            ui.log.innerHTML += logMsg;
+            ui.log.scrollTop = ui.log.scrollHeight;
+            updateDisplay();
+        }
+
+        // --- 界面更新 ---
+
+        function updateDisplay() {
+            ui.hp.innerText = state.hp;
+            ui.shield.innerText = state.shield;
+            ui.turn.innerText = state.turn;
+            
+            // 普攻伤害 = 17 + (3 * 应力)
+            const currentDmg = 17 + (state.stress * 3);
+            ui.atk.innerText = currentDmg;
+            
+            // 减伤 = 应力层数
+            ui.reduct.innerText = state.stress;
+
+            // 应力条视觉
+            ui.stressPips.forEach((pip, index) => {
+                if (index < state.stress) {
+                    pip.classList.add('active');
+                } else {
+                    pip.classList.remove('active');
+                }
+            });
+
+            // CD 状态 Skill 1
+            if (state.cd1 > 0) {
+                ui.btn1.classList.add('on-cd');
+                ui.cdText1.innerText = state.cd1;
+                ui.btn1.disabled = true;
+            } else {
+                ui.btn1.classList.remove('on-cd');
+                ui.btn1.disabled = false;
+            }
+
+            // CD 状态 Skill 2
+            if (state.cd2 > 0) {
+                ui.btn2.classList.add('on-cd');
+                ui.cdText2.innerText = state.cd2;
+                ui.btn2.disabled = true;
+            } else {
+                ui.btn2.classList.remove('on-cd');
+                if (state.stress === 0) {
+                    ui.btn2.disabled = true;
+                    ui.btn2.style.opacity = "0.7";
+                } else {
+                    ui.btn2.disabled = false;
+                    ui.btn2.style.opacity = "1";
+                }
+            }
+        }
+
+        function log(msg) {
+            ui.log.innerHTML += `<div class="log-entry">${msg}</div>`;
+            ui.log.scrollTop = ui.log.scrollHeight;
+        }
+
+    </script>
+</body>
+</html>
