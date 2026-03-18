@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>融合召唤生成器</title>
+    <!-- 引入JSZip库实现压缩功能 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(148, 163, 184, 0.2);
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #c4b5fd, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p { font-size: 0.85rem; color: var(--text-muted); }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .hint {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.3s;
+        }
+        button:active { transform: scale(0.97); }
+        .btn-save {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .btn-save:hover { background: rgba(255, 255, 255, 0.15); }
+        .btn-export {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-export:hover { background: var(--primary-hover); }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        @media (max-width: 400px) {
+            .btn-group { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast">保存成功！</div>
+    <div class="container">
+        <div class="header">
+            <h1>融合召唤</h1>
+            <p>铭刻你的随从</p>
+        </div>
+        <div class="form-group">
+            <label for="qq">QQ号 (必填)</label>
+            <input type="number" id="qq" placeholder="例如：123456789" autocomplete="off">
+            <span class="hint">用于生成专属文件夹名称</span>
+        </div>
+        <div class="form-group">
+            <label for="materials">融合素材 (Materials)</label>
+            <input type="text" id="materials" placeholder="例如：史莱姆,龙" autocomplete="off">
+            <span class="hint">多个素材请用英文逗号(,)分隔</span>
+        </div>
+        <div class="form-group">
+            <label for="resultName">融合产物 (Result)</label>
+            <input type="text" id="resultName" placeholder="例如：史莱姆龙" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="hp">生命值 (HP)</label>
+            <input type="number" id="hp" placeholder="例如：2800" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="line">登场台词 (Line) - 可选</label>
+            <textarea id="line" placeholder="例如：沉睡于混沌深渊的黏浊之龙，于此刻挣脱束缚，降临吧，史莱姆龙！"></textarea>
+            <span class="hint">召唤成功时由骰娘自动播报的帅气台词</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn-save" onclick="saveData()">暂存数据</button>
+            <button class="btn-export" onclick="exportFile()">生成文件</button>
+        </div>
+    </div>
+    <script>
+        // 初始化时加载本地缓存
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = JSON.parse(localStorage.getItem('fusionDraft'));
+            if (data) {
+                document.getElementById('qq').value = data.qq || '';
+                document.getElementById('materials').value = data.materials || '';
+                document.getElementById('resultName').value = data.resultName || '';
+                document.getElementById('hp').value = data.hp || '';
+                document.getElementById('line').value = data.line || '';
+            }
+            
+            // 实时监听输入并自动保存
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    const currentData = {
+                        qq: document.getElementById('qq').value,
+                        materials: document.getElementById('materials').value,
+                        resultName: document.getElementById('resultName').value,
+                        hp: document.getElementById('hp').value,
+                        line: document.getElementById('line').value
+                    };
+                    localStorage.setItem('fusionDraft', JSON.stringify(currentData));
+                });
+            });
+        });
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+        function saveData() {
+            const data = {
+                qq: document.getElementById('qq').value,
+                materials: document.getElementById('materials').value,
+                resultName: document.getElementById('resultName').value,
+                hp: document.getElementById('hp').value,
+                line: document.getElementById('line').value
+            };
+            localStorage.setItem('fusionDraft', JSON.stringify(data));
+            showToast('数据已缓存至本地空间');
+        }
+        function exportFile() {
+            // 获取所有输入值并去空
+            const qq = document.getElementById('qq').value.trim();
+            const materials = document.getElementById('materials').value.trim();
+            const resultName = document.getElementById('resultName').value.trim();
+            const hp = document.getElementById('hp').value.trim();
+            const line = document.getElementById('line').value.trim();
+            
+            // 校验必填项（QQ号+原有三项）
+            if (!qq || !materials || !resultName || !hp) {
+                showToast('QQ号、素材、产物、生命值为必填项！');
+                return;
+            }
+
+            // 拼接TXT文件内容
+            let fileContent = `Materials=${materials}\nResult=${resultName}\nHP=${hp}\n`;
+            if (line) {
+                fileContent += `Line=${line}\n`;
+            }
+
+            // 初始化JSZip创建压缩包
+            const zip = new JSZip();
+            // 构建目录：QQ号/产物名_配方.txt
+            const txtFileName = `${resultName}_配方.txt`;
+            zip.file(`${qq}/${txtFileName}`, fileContent);
+
+            // 生成zip压缩包并下载（压缩包名=融合产物名）
+            zip.generateAsync({ type: 'blob' })
+                .then(function (blob) {
+                    saveAs(blob, `${resultName}.zip`);
+                    showToast('压缩包已生成，内含专属QQ文件夹！');
+                });
+        }
+    </script>
+</body>
+</html>
