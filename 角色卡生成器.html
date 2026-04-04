@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -77,7 +78,11 @@
         }
 
         .form-group { margin-bottom: 25px; background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .form-group h3 { margin-top: 0; font-size: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #fff; }
+        /* 标题行带取色器的布局 */
+        .form-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; padding-bottom: 10px; }
+        .form-header h3 { margin: 0; font-size: 16px; color: #fff; border: none; padding: 0; }
+        .color-picker-wrap { display: flex; align-items: center; gap: 10px; }
+        .color-picker-wrap span { font-size: 12px; color: #aaa; }
         
         label { display: block; margin: 12px 0 6px; font-size: 13px; color: #aaa; }
         input[type="text"], input[type="number"], textarea {
@@ -86,7 +91,13 @@
         }
         input:focus, textarea:focus { border-color: #88c0d0; outline: none; }
         textarea { resize: vertical; min-height: 80px; }
-        input[type="color"] { width: 100%; height: 40px; cursor: pointer; border: none; background: none; padding: 0; }
+        
+        /* 定制颜色选择器 UI */
+        input[type="color"] { cursor: pointer; border: 1px solid var(--border-color); background: #12121a; border-radius: 4px; padding: 2px; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+        .color-large { width: 100%; height: 40px; }
+        .color-mini { width: 40px; height: 26px; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -211,9 +222,11 @@
         <div class="editor-panel" v-show="!isPreview">
             
             <div class="form-group">
-                <h3>基础与外观配置</h3>
+                <div class="form-header">
+                    <h3>基础与外观配置</h3>
+                </div>
                 <div class="grid-2">
-                    <div><label>主色调 (主题色)</label><input type="color" v-model="theme.primary"></div>
+                    <div><label>全局主色调 (影响头像框、属性表等)</label><input type="color" v-model="theme.primary" class="color-large"></div>
                     <div>
                         <label>上传立绘</label>
                         <input type="file" accept="image/*" @change="handleImageUpload" style="padding-top: 7px;">
@@ -222,10 +235,12 @@
             </div>
 
             <div class="form-group">
-                <h3>身份信息</h3>
+                <div class="form-header">
+                    <h3>身份信息</h3>
+                </div>
                 <div class="grid-2">
                     <div><label>名字</label><input type="text" v-model="char.name" placeholder="例如: 丁真"></div>
-                    <div><label>英文名/学名</label><input type="text" v-model="char.enName" placeholder="例如: DINGZHEN"></div>
+                    <div><label>英文名</label><input type="text" v-model="char.enName" placeholder="例如: DINGZHEN"></div>
                     <div><label>种族</label><input type="text" v-model="char.race"></div>
                     <div><label>性别</label><input type="text" v-model="char.gender"></div>
                     <div><label>年龄</label><input type="text" v-model="char.age"></div>
@@ -233,12 +248,19 @@
                     <div><label>体重</label><input type="text" v-model="char.weight"></div>
                     <div><label>普攻伤害</label><input type="text" v-model="char.atk"></div>
                 </div>
+                
                 <label>性格</label><input type="text" v-model="char.personality">
-                <label>喜欢</label><input type="text" v-model="char.likes">
+                
+                <div class="grid-2">
+                    <div><label>喜欢</label><input type="text" v-model="char.likes"></div>
+                    <div><label>厌恶</label><input type="text" v-model="char.dislikes"></div>
+                </div>
             </div>
 
             <div class="form-group">
-                <h3>四维属性</h3>
+                <div class="form-header">
+                    <h3>四维属性</h3>
+                </div>
                 <div class="grid-4">
                     <div v-for="(attr, index) in attrs" :key="index">
                         <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 5px;">
@@ -248,12 +270,20 @@
             </div>
 
             <div class="form-group">
-                <h3>背景故事</h3>
+                <div class="form-header">
+                    <h3>背景故事</h3>
+                    <div class="color-picker-wrap">
+                        <span>颜色</span>
+                        <input type="color" v-model="storyColor" class="color-mini">
+                    </div>
+                </div>
                 <textarea v-model="story" placeholder="在此输入角色的背景故事，回车换行会自动分段..."></textarea>
             </div>
 
             <div class="form-group">
-                <h3>能力/技能</h3>
+                <div class="form-header">
+                    <h3>能力/技能</h3>
+                </div>
                 <div class="syntax-hint">
                     <b>文本排版语法</b>：在描述中输入 <code>[名词]</code> 会变为黑底白字标签，输入 <code>{数值}</code> 会变为下划线粗体高亮。
                 </div>
@@ -261,7 +291,11 @@
                 <div v-for="(skill, index) in skills" :key="index" class="skill-item-edit">
                     <div class="skill-head">
                         <b style="color:#fff;">技能 {{ index + 1 }}</b>
-                        <button type="button" class="btn-small-danger" @click="removeSkill(index)">删除</button>
+                        <div class="color-picker-wrap">
+                            <span>颜色</span>
+                            <input type="color" v-model="skill.color" class="color-mini">
+                            <button type="button" class="btn-small-danger" @click="removeSkill(index)" style="margin-left: 5px;">删除</button>
+                        </div>
                     </div>
                     <div class="grid-2">
                         <div><label>技能名</label><input type="text" v-model="skill.title" placeholder="如: ① 被动【蜕皮】"></div>
@@ -276,10 +310,11 @@
 
         <!-- 预览面板 -->
         <div class="preview-panel" v-show="isPreview">
+            <!-- 整体容器默认使用全局 primary 变量 -->
             <div id="pdf-content" :style="{ '--theme': theme.primary }">
                 <div class="page-content">
                     
-                    <!-- 模块1：基础信息 -->
+                    <!-- 模块1：基础信息 (继承全局 Theme) -->
                     <div class="section-block">
                         <div class="header">
                             <h1>{{ char.name || '角色名字' }}</h1>
@@ -308,14 +343,15 @@
                                     <tr><td>体重</td><td>{{ char.weight }}</td></tr>
                                     <tr><td>性格</td><td>{{ char.personality }}</td></tr>
                                     <tr><td>喜欢</td><td>{{ char.likes }}</td></tr>
+                                    <tr><td>厌恶</td><td>{{ char.dislikes }}</td></tr>
                                     <tr><td>普攻</td><td><span class="val-tag">{{ char.atk || '?' }}</span></td></tr>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 模块2：背景故事 -->
-                    <div class="section-block" v-if="story && story.trim()">
+                    <!-- 模块2：背景故事 (独立 StoryColor) -->
+                    <div class="section-block" v-if="story && story.trim()" :style="{ '--theme': storyColor }">
                         <div class="header avoid-break">
                             <h2>背景 / BACKGROUND</h2>
                         </div>
@@ -328,7 +364,8 @@
                             <h2>能力 / SKILLS</h2>
                         </div>
                         <div class="skill-section">
-                            <div class="skill-box avoid-break" v-for="(skill, index) in skills" :key="index">
+                            <!-- 每一个技能框使用自己独立的 skill.color -->
+                            <div class="skill-box avoid-break" v-for="(skill, index) in skills" :key="index" :style="{ '--theme': skill.color || theme.primary }">
                                 <div class="skill-title">
                                     <span>{{ skill.title || '未知技能' }}</span>
                                     <span>{{ skill.tag }}</span>
@@ -349,11 +386,12 @@
 
     const DEFAULT_DATA = {
         theme: { primary: '#000000' },
-        char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', atk: '', avatar: '' },
+        char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', atk: '', avatar: '' },
         attrs:[
             { label: '生命', val: '' }, { label: '速度', val: '' }, { label: '力量', val: '' }, { label: '幸运', val: '' }
         ],
         story: "",
+        storyColor: "#000000",
         skills:[]
     };
 
@@ -365,28 +403,29 @@
                 char: JSON.parse(JSON.stringify(DEFAULT_DATA.char)),
                 attrs: JSON.parse(JSON.stringify(DEFAULT_DATA.attrs)),
                 story: DEFAULT_DATA.story,
+                storyColor: DEFAULT_DATA.storyColor,
                 skills: JSON.parse(JSON.stringify(DEFAULT_DATA.skills))
             }
         },
         created() {
-            this.loadData(); // 初始化时读取本地保存的数据
+            this.loadData();
         },
         watch: {
-            // 深度监听所有数据的变化并自动保存
             theme: { handler() { this.saveData(); }, deep: true },
             char: { handler() { this.saveData(); }, deep: true },
             attrs: { handler() { this.saveData(); }, deep: true },
             story: { handler() { this.saveData(); } },
+            storyColor: { handler() { this.saveData(); } },
             skills: { handler() { this.saveData(); }, deep: true }
         },
         methods: {
-            // 保存数据到本地存储
             saveData() {
                 const dataToSave = {
                     theme: this.theme,
                     char: this.char,
                     attrs: this.attrs,
                     story: this.story,
+                    storyColor: this.storyColor,
                     skills: this.skills
                 };
                 try {
@@ -395,7 +434,6 @@
                     console.warn("数据保存失败，可能是图片体积过大导致的缓存溢出。");
                 }
             },
-            // 从本地存储加载数据
             loadData() {
                 const savedData = localStorage.getItem('charCardGeneratorData');
                 if (savedData) {
@@ -405,23 +443,29 @@
                         if(parsed.char) this.char = parsed.char;
                         if(parsed.attrs) this.attrs = parsed.attrs;
                         if(parsed.story !== undefined) this.story = parsed.story;
-                        if(parsed.skills) this.skills = parsed.skills;
+                        if(parsed.storyColor) this.storyColor = parsed.storyColor;
+                        if(parsed.skills) {
+                            // 给旧数据默认分配全局颜色
+                            this.skills = parsed.skills.map(s => ({
+                                ...s,
+                                color: s.color || parsed.theme?.primary || '#000000'
+                            }));
+                        }
                     } catch (e) {
                         console.error('解析本地数据失败');
                     }
                 }
             },
-            // 一键清空与重置功能
             resetData() {
                 if (confirm("确定要清空所有填写的角色数据吗？此操作不可逆！")) {
                     this.theme = JSON.parse(JSON.stringify(DEFAULT_DATA.theme));
                     this.char = JSON.parse(JSON.stringify(DEFAULT_DATA.char));
                     this.attrs = JSON.parse(JSON.stringify(DEFAULT_DATA.attrs));
                     this.story = DEFAULT_DATA.story;
+                    this.storyColor = DEFAULT_DATA.storyColor;
                     this.skills = JSON.parse(JSON.stringify(DEFAULT_DATA.skills));
                     localStorage.removeItem('charCardGeneratorData');
                     
-                    // 如果在预览状态下清空，自动切回编辑状态
                     if (this.isPreview) {
                         this.isPreview = false;
                     }
@@ -440,7 +484,6 @@
                 parsed = parsed.replace(/\{(.*?)\}/g, '<span class="val-tag">$1</span>');
                 return parsed;
             },
-            // 带有图片压缩逻辑的上传功能（防止原图过大导致LocalStorage溢出）
             handleImageUpload(event) {
                 const file = event.target.files[0];
                 if (file) {
@@ -448,10 +491,9 @@
                     reader.onload = (e) => {
                         const img = new Image();
                         img.onload = () => {
-                            // 使用 Canvas 压缩图片尺寸与质量
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 800; // 最大宽度约束
-                            const MAX_HEIGHT = 800; // 最大高度约束
+                            const MAX_WIDTH = 800; 
+                            const MAX_HEIGHT = 800; 
                             let width = img.width;
                             let height = img.height;
 
@@ -471,7 +513,6 @@
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // 转换为压缩率 0.8 的 JPEG 以减轻本地存储压力
                             this.char.avatar = canvas.toDataURL('image/jpeg', 0.8);
                         };
                         img.src = e.target.result;
@@ -480,7 +521,8 @@
                 }
             },
             addSkill() {
-                this.skills.push({ title: '', tag: '', desc: '' });
+                // 新加的技能默认继承全局主色调
+                this.skills.push({ title: '', tag: '', desc: '', color: this.theme.primary });
             },
             removeSkill(index) {
                 this.skills.splice(index, 1);
