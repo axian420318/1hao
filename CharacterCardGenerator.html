@@ -1,15 +1,12 @@
 
 
 
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>角色卡生成器</title>
-    <!-- 引入 Vue3 和网页截图工具 html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -29,7 +26,6 @@
             background-color: var(--bg-dark); color: var(--text-light);
         }
 
-        /* 导航栏 */
         .navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background: rgba(30, 30, 47, 0.95); backdrop-filter: blur(5px);
@@ -51,7 +47,6 @@
 
         .main-container { margin-top: 60px; padding-bottom: 70px; min-height: calc(100vh - 60px); }
 
-        /* 编辑器通用组件 */
         .editor-panel { max-width: 800px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
         .form-group { margin-bottom: 25px; background: var(--panel-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         .form-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; padding-bottom: 10px; }
@@ -90,7 +85,6 @@
         .skill-input-hex { width: 70px; height: 26px; padding: 0 5px; background: #12121a; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; text-transform: uppercase; text-align: center; }
         .syntax-hint { font-size: 12px; color: #88c0d0; margin-top: 5px; background: rgba(136, 192, 208, 0.1); padding: 8px; border-radius: 4px; line-height: 1.5; }
 
-        /* ================= 色彩积木工作台 ================= */
         .color-workbench { padding: 20px 10px; background: #12121a; border-radius: 8px; margin-bottom: 20px; border: 1px solid #2a2a3c; }
         .workbench-tip { text-align: center; font-size: 12px; color: #88c0d0; margin-bottom: 20px; line-height: 1.6; }
         .wb-stack { display: flex; flex-direction: column; align-items: center; }
@@ -132,7 +126,6 @@
         .preset-colors { display: flex; height: 20px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
         .preset-colors div { flex: 1; transition: 0.2s; }
 
-        /* ========== 预览界面 ========== */
         .preview-panel { width: 100%; min-height: calc(100vh - 60px); background: #222; padding: 30px 15px; box-sizing: border-box; display: block; }
 
         #card-content {
@@ -173,7 +166,6 @@
         .tag { background: var(--theme); color: #fff; padding: 2px 8px; font-style: normal; font-weight: bold; border-radius: 4px; margin: 0 2px; }
         .val-tag { border-bottom: 2px solid var(--theme); font-weight: 900; padding: 0 4px; color: var(--theme); }
 
-        /* ================= 附加图集区排版 ================= */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; }
         .gallery-item { border: 2px solid var(--theme); background: rgba(255,255,255,0.85); box-shadow: 5px 5px 0px var(--theme); padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
         .gallery-img-box { width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
@@ -205,7 +197,20 @@
     <div class="main-container">
         <!-- 编辑器面板 -->
         <div class="editor-panel" v-show="!isPreview">
+
+            <!-- 智能识别导入 -->
+            <div class="form-group">
+                <div class="form-header">
+                    <h3>智能文本识别导入</h3>
+                </div>
+                <div class="syntax-hint" style="margin-bottom: 10px;">
+                    将群内的人设模板粘贴进来即可自动填入对应输入框，暂不支持技能。
+                </div>
+                <textarea v-model="importText" placeholder="在此粘贴模板文本..." style="min-height: 120px;"></textarea>
+                <button type="button" class="btn-primary" @click="parseTemplate" style="width: 100%; margin-top: 10px;">识别并导入信息</button>
+            </div>
             
+            <!-- 色彩工作台 -->
             <div class="form-group">
                 <div class="form-header">
                     <h3>色彩工作台</h3>
@@ -217,21 +222,18 @@
                     </div>
 
                     <div class="wb-stack">
-                        <!-- 层三：装饰 -->
                         <div class="wb-layer wb-layer-3" :style="{ backgroundColor: wbAccent }">
-                            <div class="wb-title">层三：局部装饰 (背景/技能)</div>
+                            <div class="wb-title">层三：局部装饰 (背景/技能/外貌)</div>
                             <div class="wb-controls">
                                 <input type="text" v-model="wbAccent" class="wb-input-hex" @change="syncTheme" maxlength="7">
                                 <input type="color" v-model="wbAccent" class="color-mini" @input="syncTheme">
                             </div>
                         </div>
 
-                        <!-- 交换按钮 (3层 与 2层) -->
                         <div class="swap-wrapper">
                             <button class="swap-btn" @click="swapColors('wbAccent', 'wbPrimary')" title="互换图层颜色">⇅</button>
                         </div>
 
-                        <!-- 层二：边框 -->
                         <div class="wb-layer wb-layer-2" :style="{ backgroundColor: wbPrimary }">
                             <div class="wb-title">层二：主干边框 (头像框/标题)</div>
                             <div class="wb-controls">
@@ -240,12 +242,10 @@
                             </div>
                         </div>
 
-                        <!-- 交换按钮 (2层 与 1层) -->
                         <div class="swap-wrapper">
                             <button class="swap-btn" @click="swapColors('wbPrimary', 'wbBg')" title="互换图层颜色">⇅</button>
                         </div>
 
-                        <!-- 层一：背景 -->
                         <div class="wb-layer wb-layer-1" :style="{ backgroundColor: wbBg }">
                             <div class="wb-title">层一：底层画布 (全局背景)</div>
                             <div class="wb-controls">
@@ -256,13 +256,11 @@
                     </div>
                 </div>
 
-                <!-- 分类预设选项卡 -->
                 <div class="preset-tabs">
                     <button type="button" class="tab-btn" :class="{active: activeTab === 'guofeng'}" @click="activeTab = 'guofeng'">国风配色 (双色)</button>
                     <button type="button" class="tab-btn" :class="{active: activeTab === 'gemstone'}" @click="activeTab = 'gemstone'">宝石配色 (三色)</button>
                 </div>
 
-                <!-- 国风列表 -->
                 <div class="preset-grid-v2" v-show="activeTab === 'guofeng'">
                     <div class="preset-card" v-for="p in presetsGuofeng" :key="p.name" @click="applyPreset(p)">
                         <span class="preset-title">{{ p.name }}</span>
@@ -272,7 +270,6 @@
                     </div>
                 </div>
 
-                <!-- 宝石列表 -->
                 <div class="preset-grid-v2" v-show="activeTab === 'gemstone'">
                     <div class="preset-card" v-for="p in presetsGemstone" :key="p.name" @click="applyPreset(p)">
                         <span class="preset-title">{{ p.name }}</span>
@@ -300,10 +297,9 @@
                     <div><label>年龄</label><input type="text" v-model="char.age"></div>
                     <div><label>身高</label><input type="text" v-model="char.height"></div>
                     <div><label>体重</label><input type="text" v-model="char.weight"></div>
+                    <div><label>武器</label><input type="text" v-model="char.weapon"></div>
                     <div><label>普攻伤害</label><input type="text" v-model="char.atk"></div>
-                </div>
-                <label>性格</label><input type="text" v-model="char.personality">
-                <div class="grid-2">
+                    <div><label>性格</label><input type="text" v-model="char.personality"></div>
                     <div><label>喜欢</label><input type="text" v-model="char.likes"></div>
                     <div><label>厌恶</label><input type="text" v-model="char.dislikes"></div>
                 </div>
@@ -320,8 +316,13 @@
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>背景</h3></div>
-                <textarea v-model="story" placeholder="在此输入角色的背景，回车换行会自动分段..."></textarea>
+                <div class="form-header"><h3>外貌描写</h3></div>
+                <textarea v-model="char.appearance" placeholder="在此输入角色的外貌特征..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>背景故事</h3></div>
+                <textarea v-model="story" placeholder="在此输入角色的背景故事，回车换行会自动分段..."></textarea>
             </div>
 
             <div class="form-group">
@@ -398,6 +399,7 @@
                                     <tr><td>年龄</td><td>{{ char.age }}</td></tr>
                                     <tr><td>身高</td><td>{{ char.height }}</td></tr>
                                     <tr><td>体重</td><td>{{ char.weight }}</td></tr>
+                                    <tr><td>武器</td><td>{{ char.weapon }}</td></tr>
                                     <tr><td>性格</td><td>{{ char.personality }}</td></tr>
                                     <tr><td>喜欢</td><td>{{ char.likes }}</td></tr>
                                     <tr><td>厌恶</td><td>{{ char.dislikes }}</td></tr>
@@ -407,7 +409,13 @@
                         </div>
                     </div>
 
-                    <!-- 角色背景，绑定第三层装饰色 -->
+                    <!-- 外貌特征 -->
+                    <div class="section-block" v-if="char.appearance && char.appearance.trim()" :style="{ '--theme': storyColor }">
+                        <div class="header"><h2>外貌 / APPEARANCE</h2></div>
+                        <div class="story-section">{{ char.appearance }}</div>
+                    </div>
+
+                    <!-- 角色背景 -->
                     <div class="section-block" v-if="story && story.trim()" :style="{ '--theme': storyColor }">
                         <div class="header"><h2>背景 / BACKGROUND</h2></div>
                         <div class="story-section">{{ story }}</div>
@@ -456,14 +464,13 @@
         data() {
             return {
                 isPreview: false,
-                activeTab: 'guofeng', // 预设切换卡
+                activeTab: 'guofeng', 
+                importText: '', // 智能导入的文本框
                 
-                // 色彩工作台状态
                 wbBg: '#ffffff',
                 wbPrimary: '#000000',
                 wbAccent: '#000000',
 
-                // 预设库
                 presetsGuofeng:[
                     { name: '明月石榴', colors:['#D3D4CD', '#B3392F'] },
                     { name: '雪青紫罗', colors:['#BDB5D7', '#7356B1'] },
@@ -492,14 +499,13 @@
                     { name: '黄昏玫瑰', colors:['#E5BEEF', '#697FFF', '#F39872'] }
                 ],
 
-                // 数据核心模型
                 theme: { bg: '#ffffff', primary: '#000000' },
                 storyColor: "#000000",
-                char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', atk: '', avatar: '' },
+                char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', weapon: '', atk: '', appearance: '', avatar: '' },
                 attrs:[ { label: '生命', val: '' }, { label: '速度', val: '' }, { label: '力量', val: '' }, { label: '幸运', val: '' } ],
                 story: "",
                 skills:[],
-                gallery:[] // 附加图集数据
+                gallery:[]
             }
         },
         created() {
@@ -513,7 +519,63 @@
             gallery: { handler() { this.saveData(); }, deep: true }
         },
         methods: {
-            // ============== 色彩积木核心逻辑 ==============
+            // ============== 智能文本识别核心 ==============
+            parseTemplate() {
+                if (!this.importText.trim()) return;
+                
+                const lines = this.importText.split('\n');
+                let currentKey = null;
+
+                // 字段映射表
+                const keyMap = {
+                    '姓名': 'name', '性别': 'gender', '种族': 'race',
+                    '年龄': 'age', '身高': 'height', '体重': 'weight',
+                    '性格': 'personality', '喜好/喜欢': 'likes', '喜好': 'likes', '喜欢': 'likes',
+                    '厌恶': 'dislikes', '外貌': 'appearance', '背景': 'story',
+                    '武器': 'weapon', '普攻伤害': 'atk', '普攻': 'atk',
+                    '生命': 'attr_生命', '力量': 'attr_力量', '速度': 'attr_速度', '幸运': 'attr_幸运',
+                    '能力': 'ignore', '技能': 'ignore' // 遇到能力/技能停止向下文合并
+                };
+
+                for (let line of lines) {
+                    // 正则匹配：任意空格 + 关键词 + (：或:) + 内容
+                    const match = line.match(/^\s*(姓名|性别|种族|年龄|身高|体重|性格|喜好\/喜欢|喜好|喜欢|厌恶|外貌|背景|武器|普攻伤害|普攻|生命|力量|速度|幸运|能力|技能)\s*[:：]\s*(.*)$/);
+
+                    if (match) {
+                        const key = match[1];
+                        const value = match[2].trim();
+                        const mappedKey = keyMap[key];
+                        currentKey = mappedKey;
+
+                        if (mappedKey && mappedKey !== 'ignore') {
+                            if (mappedKey.startsWith('attr_')) {
+                                const attrName = mappedKey.split('_')[1];
+                                const attr = this.attrs.find(a => a.label === attrName);
+                                if (attr) attr.val = value;
+                            } else if (mappedKey === 'story') {
+                                this.story = value;
+                            } else {
+                                this.char[mappedKey] = value;
+                            }
+                        }
+                    } else {
+                        // 如果没有匹配到头部，且当前在某个有效的大文本字段下，自动合并多行文本
+                        if (currentKey && currentKey !== 'ignore') {
+                            if (currentKey === 'story') {
+                                this.story += (this.story ? '\n' : '') + line.trim();
+                            } else if (currentKey === 'appearance') {
+                                this.char.appearance += (this.char.appearance ? '\n' : '') + line.trim();
+                            } else if (!currentKey.startsWith('attr_')) {
+                                this.char[currentKey] += (this.char[currentKey] ? ' ' : '') + line.trim();
+                            }
+                        }
+                    }
+                }
+                
+                alert('文本识别导入完成！');
+                this.importText = ''; // 成功后清空框内文本
+            },
+
             swapColors(key1, key2) {
                 const temp = this[key1];
                 this[key1] = this[key2];
@@ -527,15 +589,12 @@
                 this.syncTheme();
             },
             syncTheme() {
-                // 将工作台的颜色下发给全局预览图
                 this.theme.bg = this.wbBg;
                 this.theme.primary = this.wbPrimary;
                 this.storyColor = this.wbAccent;
                 this.skills.forEach(skill => { skill.color = this.wbAccent; });
-                this.saveData(); // 触发存档
+                this.saveData(); 
             },
-
-            // ============== 数据持久化 ==============
             saveData() {
                 const dataToSave = {
                     wbBg: this.wbBg, wbPrimary: this.wbPrimary, wbAccent: this.wbAccent,
@@ -566,8 +625,6 @@
                     location.reload(); 
                 }
             },
-
-            // ============== 图文系统 ==============
             togglePreview() {
                 this.isPreview = !this.isPreview;
                 if(this.isPreview) window.scrollTo(0, 0);
@@ -577,7 +634,6 @@
                 let safe = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 return safe.replace(/\[(.*?)\]/g, '<i class="tag">$1</i>').replace(/\{(.*?)\}/g, '<span class="val-tag">$1</span>');
             },
-            // 通用图片压缩方法
             processImage(file, callback) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -622,8 +678,6 @@
             removeGalleryImage(index) {
                 this.gallery.splice(index, 1);
             },
-
-            // ============== 高清长图导出引擎 ==============
             async exportImage() {
                 if (!this.isPreview) {
                     this.isPreview = true;
