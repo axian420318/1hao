@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -132,30 +131,26 @@
         .effect-toggles label { margin: 0; display: flex; align-items: center; gap: 5px; font-size: 13px; color: #ccc; cursor: pointer;}
         .effect-toggles input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
 
-        /* ====== 修复：优化预览容器的滚动和截断问题 ====== */
         .preview-panel { 
             width: 100%; 
             min-height: calc(100vh - 60px); 
             background: transparent; 
             padding: 30px 15px; 
             box-sizing: border-box; 
-            display: block; /* 移除 flex 和 align-items，避免居中挤压 */
-            overflow-x: auto; /* 开启水平滚动 */
-            -webkit-overflow-scrolling: touch; /* 提升 iOS 设备滚动流畅度 */
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* 分页式长图画板 */
         #card-content {
             width: 794px; display: flex; flex-direction: column; gap: 20px;
             color: #333; position: relative; text-align: left;
-            margin: 0 auto; /* 宽屏下仍然居中展示 */
+            margin: 0 auto; 
         }
 
-        /* 小于画板尺寸时取消自动居中，靠左排列以保证能被完整拖动看完 */
         @media (max-width: 824px) {
             #card-content { margin: 0; }
         }
-        /* ============================================== */
 
         .page-block {
             background-color: var(--bg);
@@ -266,7 +261,8 @@
                     <h3>智能文本识别导入</h3>
                 </div>
                 <div class="syntax-hint" style="margin-bottom: 10px;">
-                    将群内的人设模板粘贴在此处，点击识别即可自动填入。支持多行内容，属性括号备注会自动净化剔除，能识别“携带物品：/:”“职业：/:”，遇到“能力”、“技能”或“属性”字样会自动停止或跳过。
+                    将群内的人设模板粘贴在此处，点击识别即可自动填入。<br>
+
                 </div>
                 <textarea v-model="importText" placeholder="在此粘贴模板文本..." style="min-height: 120px;"></textarea>
                 <button type="button" class="btn-primary" @click="parseTemplate" style="width: 100%; margin-top: 10px;">识别并导入信息</button>
@@ -774,23 +770,42 @@
         methods: {
             parseTemplate() {
                 if (!this.importText.trim()) return;
-                const lines = this.importText.split('\n');
+                
+                let text = this.importText;
+                
+                // 1. 容错词汇替换与无用字符过滤
+                text = text.replace(/模板姓名/g, '姓名');
+                text = text.replace(/携带的物品/g, '携带物品');
+                text = text.replace(/喜好\/喜欢/g, '喜好');
+                text = text.replace(/普攻伤害/g, '普攻');
+                text = text.replace(/^\s*T\s*$/gm, ''); // 移除群模板排版中孤立的T
+                
+                // 2. 将可能的同行属性强制拆分到新行，并统一使用英文冒号
+                const keywords = "姓名|性别|种族|年龄|身高|体重|职业|性格|喜好|喜欢|厌恶|外貌|背景|携带物品|武器|普攻|能力|技能|属性|生命|理智|智慧|魅力|力量|敏捷|速度|幸运|搏斗|话术|技巧|感知";
+                const splitRegex = new RegExp(`(${keywords})\\s*(?:[:：]|\\/:)`, 'g');
+                text = text.replace(splitRegex, '\n$1:');
+                
+                const lines = text.split('\n');
                 let currentKey = null;
 
                 const keyMap = {
                     '姓名': 'name', '性别': 'gender', '种族': 'race',
                     '年龄': 'age', '身高': 'height', '体重': 'weight',
-                    '性格': 'personality', '喜好/喜欢': 'likes', '喜好': 'likes', '喜欢': 'likes',
+                    '性格': 'personality', '喜好': 'likes', '喜欢': 'likes',
                     '厌恶': 'dislikes', '外貌': 'appearance', '背景': 'story',
-                    '武器': 'weapon', '携带物品': 'weapon', '职业': 'profession', '普攻伤害': 'atk', '普攻': 'atk',
+                    '武器': 'weapon', '携带物品': 'weapon', '职业': 'profession', '普攻': 'atk',
                     '生命': 'attr_生命', '力量': 'attr_力量', '速度': 'attr_速度', '幸运': 'attr_幸运',
                     '理智': 'trpg_理智', '智慧': 'trpg_智慧', '魅力': 'trpg_魅力', '敏捷': 'trpg_敏捷',
                     '搏斗': 'trpg_搏斗', '话术': 'trpg_话术', '技巧': 'trpg_技巧', '感知': 'trpg_感知',
                     '属性': 'ignore', '能力': 'ignore', '技能': 'ignore' 
                 };
 
+                const lineRegex = new RegExp(`^\\s*(${keywords})\\s*[:：]\\s*(.*)$`);
+
                 for (let line of lines) {
-                    const match = line.match(/^\s*(姓名|性别|种族|年龄|身高|体重|性格|喜好\/喜欢|喜好|喜欢|厌恶|外貌|背景|武器|携带物品|职业|普攻伤害|普攻|生命|力量|速度|幸运|理智|智慧|魅力|敏捷|搏斗|话术|技巧|感知|能力|技能|属性)\s*(?:[:：]|\/:)\s*(.*)$/);
+                    if (!line.trim()) continue; // 跳过空行
+                    
+                    const match = line.match(lineRegex);
                     if (match) {
                         const key = match[1];
                         let value = match[2].trim();
@@ -798,6 +813,7 @@
                         currentKey = mappedKey;
 
                         if (mappedKey && mappedKey !== 'ignore') {
+                            // 清除括号里面的说明文字（比如：100(不能被点数增加) -> 100）
                             if (mappedKey.startsWith('attr_') || mappedKey.startsWith('trpg_')) {
                                 value = value.replace(/\(.*?\)|（.*?）/g, '').trim();
                             }
@@ -811,15 +827,18 @@
                                 const attr = this.trpgAttrs.find(a => a.label === attrName);
                                 if (attr) { 
                                     attr.val = value;
-                                    this.effects.trpg = true; 
+                                    this.effects.trpg = true; // 自动开启跑团扩展面板
                                 }
                             } else if (mappedKey === 'story') {
                                 this.story = value;
+                            } else if (mappedKey === 'appearance') {
+                                this.char.appearance = value;
                             } else {
                                 this.char[mappedKey] = value;
                             }
                         }
                     } else {
+                        // 未匹配到关键字的行，归属于上一字段内容
                         if (currentKey && currentKey !== 'ignore') {
                             if (currentKey === 'story') {
                                 this.story += (this.story ? '\n' : '') + line.trim();
@@ -831,7 +850,7 @@
                         }
                     }
                 }
-                alert('文本识别导入完成！');
+                alert('文本识别导入完成！\n群内职业说明等解释性文字已被录入输入框，您可以手动删减不需要的部分。');
                 this.importText = ''; 
             },
 
