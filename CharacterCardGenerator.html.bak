@@ -1,0 +1,952 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>角色卡生成器</title>
+    <!-- 引入 Vue3 和网页截图工具 html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #12121a;
+            --panel-bg: #1e1e2f;
+            --text-light: #ececec;
+            --border-color: #3e3e5e;
+            --primary-btn: #4caf50;
+            --blue-btn: #2196f3;
+            --danger-btn: #e53935;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'PingFang SC', 'Source Han Serif SC', 'Noto Serif SC', serif;
+            background-color: var(--bg-dark); color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        /* 动态互动背景画布 - 严格置于最底层 */
+        #particle-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; pointer-events: none;
+        }
+
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(30, 30, 47, 0.95); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; box-sizing: border-box; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 1000;
+        }
+        .navbar h2 { margin: 0; font-size: 18px; letter-spacing: 1px; color: #fff; }
+        .nav-actions { display: flex; gap: 10px; }
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #1e1e2f; padding: 10px; box-sizing: border-box;
+            display: flex; gap: 8px; box-shadow: 0 -2px 10px rgba(0,0,0,0.5); z-index: 1000; display: none;
+        }
+        @media (max-width: 768px) {
+            .navbar .nav-actions { display: none; }
+            .bottom-bar { display: flex; }
+            .bottom-bar button { padding: 10px 5px; font-size: 13px; }
+        }
+
+        .main-container { margin-top: 60px; padding-bottom: 70px; min-height: calc(100vh - 60px); position: relative; z-index: 10;}
+
+        .editor-panel { max-width: 800px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+        .form-group { margin-bottom: 25px; background: rgba(30, 30, 47, 0.9); backdrop-filter: blur(8px); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .form-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; padding-bottom: 10px; }
+        .form-header h3 { margin: 0; font-size: 16px; color: #fff; }
+        
+        label { display: block; margin: 12px 0 6px; font-size: 13px; color: #aaa; }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%; padding: 10px; box-sizing: border-box;
+            background: #12121a; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; transition: 0.3s;
+        }
+        input:focus, textarea:focus { border-color: #88c0d0; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        @media (max-width: 600px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+
+        button { padding: 10px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; border: none; transition: 0.2s; color: #fff; }
+        .btn-default { background: var(--border-color); }
+        .btn-default:hover { background: #555577; }
+        .btn-primary { background: var(--primary-btn); flex: 2; text-align: center; }
+        .btn-primary:hover { background: #439e47; }
+        .btn-blue { background: var(--blue-btn); flex: 1.5; text-align: center; }
+        .btn-blue:hover { background: #1e88e5; }
+        .btn-danger { background: var(--danger-btn); flex: 1; text-align: center;}
+        .btn-danger:hover { background: #c62828; }
+        .btn-small-danger { background: var(--danger-btn); padding: 6px 12px; font-size: 12px; }
+        .btn-small-danger:hover { background: #c62828; }
+
+        .item-edit-box { border: 1px dashed var(--border-color); padding: 15px; margin-bottom: 15px; background: rgba(0,0,0,0.2); border-radius: 6px;}
+        .item-head { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;}
+        
+        .color-mini { width: 40px; height: 26px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; padding: 0; background: none;}
+        .color-mini::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-mini::-webkit-color-swatch { border: none; border-radius: 2px; }
+        .skill-input-hex { width: 70px; height: 26px; padding: 0 5px; background: #12121a; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; font-family: monospace; text-transform: uppercase; text-align: center; }
+        .syntax-hint { font-size: 12px; color: #88c0d0; margin-top: 5px; background: rgba(136, 192, 208, 0.1); padding: 8px; border-radius: 4px; line-height: 1.5; }
+
+        .color-workbench { padding: 20px 10px; background: #12121a; border-radius: 8px; margin-bottom: 20px; border: 1px solid #2a2a3c; }
+        .workbench-tip { text-align: center; font-size: 12px; color: #88c0d0; margin-bottom: 20px; line-height: 1.6; }
+        .wb-stack { display: flex; flex-direction: column; align-items: center; }
+        
+        .wb-layer {
+            position: relative; display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px; border-radius: 8px; box-shadow: 0 -4px 15px rgba(0,0,0,0.5);
+            color: #fff; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000;
+            border: 2px solid rgba(255,255,255,0.4); margin: 0 auto; transition: background 0.3s;
+        }
+        .wb-layer-3 { width: 65%; z-index: 3; }
+        .wb-layer-2 { width: 85%; z-index: 2; margin-top: -8px; }
+        .wb-layer-1 { width: 100%; z-index: 1; margin-top: -8px; box-sizing: border-box;}
+        
+        .swap-wrapper { position: relative; z-index: 10; height: 0; width: 100%; display: flex; justify-content: center; align-items: center; }
+        .swap-btn {
+            width: 26px; height: 26px; border-radius: 50%; background: #2a2a3c;
+            border: 2px solid rgba(255,255,255,0.6); color: #fff; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; font-size: 12px;
+            transition: 0.2s; transform: translateY(-4px); font-weight: bold;
+        }
+        .swap-btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+        .wb-title { font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px;}
+        .wb-controls { display: flex; gap: 8px; align-items: center; }
+
+        .preset-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #2a2a3c; border: 1px solid #3e3e5e; color: #aaa; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold;}
+        .tab-btn.active { background: #4caf50; color: #fff; border-color: #4caf50; }
+        
+        .preset-grid-v2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; }
+        .preset-card { background: #1e1e2f; border: 2px solid #3e3e5e; border-radius: 6px; padding: 8px; cursor: pointer; transition: 0.2s; }
+        .preset-card:hover { transform: translateY(-3px); border-color: #88c0d0; box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
+        .preset-title { display: block; font-size: 13px; margin-bottom: 8px; text-align: center; color: #ececec; font-weight: bold;}
+        .preset-colors { display: flex; height: 20px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
+        .preset-colors div { flex: 1; transition: 0.2s; }
+
+        /* 特效开关区 */
+        .effect-toggles { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
+        .effect-toggles label { margin: 0; display: flex; align-items: center; gap: 5px; font-size: 13px; color: #ccc; cursor: pointer;}
+        .effect-toggles input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+        .preview-panel { width: 100%; min-height: calc(100vh - 60px); background: transparent; padding: 30px 15px; box-sizing: border-box; display: block; }
+
+        /* 长图主画布容器 */
+        #card-content {
+            width: 794px; margin: 0 auto; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+            color: #333; position: relative; text-align: left;
+            background-color: var(--bg);
+        }
+        #card-content.bg-gradient {
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-dark) 100%);
+        }
+        
+        /* 100% 兼容导出的真实噪点纸张涂层 */
+        .texture-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 50; background-repeat: repeat;
+            background-color: rgba(210, 200, 180, 0.15); /* 淡淡复古泛黄 */
+        }
+
+        .page-content { padding: 50px; box-sizing: border-box; position: relative; z-index: 2; }
+        .section-block { margin-bottom: 40px; }
+
+        .header { border-bottom: 6px solid var(--theme); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header h1 { font-size: 55px; margin: 0; font-weight: 900; letter-spacing: 5px; color: var(--theme); }
+        .header .race { font-size: 20px; font-weight: bold; background: var(--theme); color: #fff; padding: 4px 12px; }
+        .header h2 { font-size: 32px; margin: 0; letter-spacing: 2px; color: var(--theme); }
+
+        .info-layout { display: grid; grid-template-columns: 360px 1fr; gap: 40px; margin-top: 20px;}
+        .portrait-container {
+            width: 100%; height: 450px; border: 4px solid var(--theme); background: rgba(255,255,255,0.7);
+            display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; color: #777; font-size: 18px;
+        }
+        .portrait-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        .data-table { width: 100%; border-collapse: collapse; font-size: 18px; }
+        .data-table td { padding: 16px 0; border-bottom: 1px solid var(--theme); }
+        .data-table td:first-child { font-weight: bold; width: 100px; color: var(--theme); opacity: 0.9; }
+
+        .attr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
+        
+        /* 团卡扩展属性网格排版 */
+        .trpg-attr-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 30px; }
+        
+        .content-box { border: 2px solid var(--theme); background: rgba(255,255,255,0.85); box-shadow: 5px 5px 0px var(--theme); }
+        
+        .effect-glass .content-box { 
+            background: rgba(255,255,255,0.45); backdrop-filter: blur(12px); 
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.1); border-color: rgba(255,255,255,0.6); 
+        }
+
+        .attr-card { padding: 10px; text-align: center; }
+        .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
+        .attr-card .value { font-size: 32px; font-weight: 900; color: var(--theme); }
+
+        .trpg-attr-grid .attr-card .label { font-size: 13px; }
+        .trpg-attr-grid .attr-card .value { font-size: 24px; }
+
+        .story-section { padding: 30px; font-size: 18px; line-height: 2.2; text-align: justify; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
+        
+        .skill-section { margin-top: 20px; }
+        .skill-box { margin-bottom: 20px; }
+        .skill-title { background: var(--theme); color: #fff; padding: 8px 15px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; }
+        .effect-glass .skill-title { background: rgba(0,0,0,0.6); }
+        .skill-desc { padding: 15px; font-size: 16px; line-height: 1.8; text-align: justify; white-space: pre-wrap; word-break: break-all; }
+
+        .tag { background: var(--theme); color: #fff; padding: 2px 8px; font-style: normal; font-weight: bold; border-radius: 4px; margin: 0 2px; }
+        .val-tag { border-bottom: 2px solid var(--theme); font-weight: 900; padding: 0 4px; color: var(--theme); }
+
+        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; }
+        .gallery-item { padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
+        .gallery-img-box { width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
+        .gallery-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .gallery-caption { font-size: 16px; font-weight: bold; color: var(--theme); text-align: center; border-top: 1px dashed var(--theme); padding-top: 10px; width: 100%; }
+
+    </style>
+</head>
+<body>
+
+<!-- 星图粒子背景 - 与界面内容层严格物理隔离 -->
+<canvas id="particle-canvas"></canvas>
+
+<div id="app">
+    <div class="navbar">
+        <h2>角色卡生成器</h2>
+        <div class="nav-actions">
+            <button type="button" class="btn-danger" @click="resetData">清空内容</button>
+            <button type="button" class="btn-blue" @click="togglePreview">
+                {{ isPreview ? '返回编辑' : '预览排版' }}
+            </button>
+            <button type="button" class="btn-primary" @click="exportImage">导出长图</button>
+        </div>
+    </div>
+    <div class="bottom-bar">
+        <button type="button" class="btn-danger" @click="resetData">清空</button>
+        <button type="button" class="btn-blue" @click="togglePreview">{{ isPreview ? '返回' : '预览' }}</button>
+        <button type="button" class="btn-primary" @click="exportImage">导出长图</button>
+    </div>
+
+    <div class="main-container">
+        <div class="editor-panel" v-show="!isPreview">
+
+            <div class="form-group">
+                <div class="form-header">
+                    <h3>智能文本识别导入</h3>
+                </div>
+                <div class="syntax-hint" style="margin-bottom: 10px;">
+                    将群内的人设模板(含：或:的格式)粘贴在此处，点击识别即可自动填入。支持多行内容，遇到“能力”或“技能”字样自动停止。团卡扩展属性也已适配。
+                </div>
+                <textarea v-model="importText" placeholder="在此粘贴模板文本..." style="min-height: 120px;"></textarea>
+                <button type="button" class="btn-primary" @click="parseTemplate" style="width: 100%; margin-top: 10px;">识别并导入信息</button>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-header">
+                    <h3>色彩工作台与高级特效</h3>
+                </div>
+                
+                <div class="color-workbench">
+                    <div class="workbench-tip">
+                        操作提示：点击预设可一键换色。点击层级间的“⇅”可互换颜色。背景动态星图会随层三变色。
+                    </div>
+
+                    <div class="wb-stack">
+                        <div class="wb-layer wb-layer-3" :style="{ backgroundColor: wbAccent }">
+                            <div class="wb-title">层三：局部装饰 (星图/技能/外貌)</div>
+                            <div class="wb-controls">
+                                <input type="text" v-model="wbAccent" class="wb-input-hex" @change="syncTheme" maxlength="7">
+                                <input type="color" v-model="wbAccent" class="color-mini" @input="syncTheme">
+                            </div>
+                        </div>
+
+                        <div class="swap-wrapper">
+                            <button class="swap-btn" @click="swapColors('wbAccent', 'wbPrimary')" title="互换图层颜色">⇅</button>
+                        </div>
+
+                        <div class="wb-layer wb-layer-2" :style="{ backgroundColor: wbPrimary }">
+                            <div class="wb-title">层二：主干边框 (头像框/标题)</div>
+                            <div class="wb-controls">
+                                <input type="text" v-model="wbPrimary" class="wb-input-hex" @change="syncTheme" maxlength="7">
+                                <input type="color" v-model="wbPrimary" class="color-mini" @input="syncTheme">
+                            </div>
+                        </div>
+
+                        <div class="swap-wrapper">
+                            <button class="swap-btn" @click="swapColors('wbPrimary', 'wbBg')" title="互换图层颜色">⇅</button>
+                        </div>
+
+                        <div class="wb-layer wb-layer-1" :style="{ backgroundColor: wbBg }">
+                            <div class="wb-title">层一：底层画布 (全局背景)</div>
+                            <div class="wb-controls">
+                                <input type="text" v-model="wbBg" class="wb-input-hex" @change="syncTheme" maxlength="7">
+                                <input type="color" v-model="wbBg" class="color-mini" @input="syncTheme">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 高级视觉特效与团卡开关 -->
+                <div class="effect-toggles">
+                    <label><input type="checkbox" v-model="effects.gradient"> 开启渐变色背景</label>
+                    <label><input type="checkbox" v-model="effects.glass"> 开启毛玻璃质感</label>
+                    <label><input type="checkbox" v-model="effects.texture"> 覆盖复古纸张纹理</label>
+                    <label style="color: #4caf50; font-weight: bold;"><input type="checkbox" v-model="effects.trpg"> 开启新团卡扩展属性</label>
+                </div>
+
+                <div class="preset-tabs" style="margin-top: 20px;">
+                    <button type="button" class="tab-btn" :class="{active: activeTab === 'guofeng'}" @click="activeTab = 'guofeng'">国风配色 (双色)</button>
+                    <button type="button" class="tab-btn" :class="{active: activeTab === 'gemstone'}" @click="activeTab = 'gemstone'">宝石配色 (三色)</button>
+                </div>
+
+                <div class="preset-grid-v2" v-show="activeTab === 'guofeng'">
+                    <div class="preset-card" v-for="p in presetsGuofeng" :key="p.name" @click="applyPreset(p)">
+                        <span class="preset-title">{{ p.name }}</span>
+                        <div class="preset-colors">
+                            <div v-for="c in p.colors" :style="{background: c}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preset-grid-v2" v-show="activeTab === 'gemstone'">
+                    <div class="preset-card" v-for="p in presetsGemstone" :key="p.name" @click="applyPreset(p)">
+                        <span class="preset-title">{{ p.name }}</span>
+                        <div class="preset-colors">
+                            <div v-for="c in p.colors" :style="{background: c}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header">
+                    <h3>主立绘上传</h3>
+                </div>
+                <input type="file" accept="image/*" @change="handleMainImageUpload">
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>身份信息</h3></div>
+                <div class="grid-2">
+                    <div><label>名字</label><input type="text" v-model="char.name"></div>
+                    <div><label>英文名</label><input type="text" v-model="char.enName"></div>
+                    <div><label>种族</label><input type="text" v-model="char.race"></div>
+                    <div><label>性别</label><input type="text" v-model="char.gender"></div>
+                    <div><label>年龄</label><input type="text" v-model="char.age"></div>
+                    <div><label>身高</label><input type="text" v-model="char.height"></div>
+                    <div><label>体重</label><input type="text" v-model="char.weight"></div>
+                    <div><label>武器</label><input type="text" v-model="char.weapon"></div>
+                    <div><label>普攻伤害</label><input type="text" v-model="char.atk"></div>
+                    <div><label>性格</label><input type="text" v-model="char.personality"></div>
+                    <div><label>喜欢</label><input type="text" v-model="char.likes"></div>
+                    <div><label>厌恶</label><input type="text" v-model="char.dislikes"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>核心四维属性</h3></div>
+                <div class="grid-4">
+                    <div v-for="(attr, index) in attrs" :key="index">
+                        <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 5px;">
+                        <input type="text" v-model="attr.val" placeholder="数值">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRPG 扩展属性编辑器 -->
+            <div class="form-group" v-if="effects.trpg">
+                <div class="form-header"><h3 style="color:#88c0d0;">跑团卡扩展属性</h3></div>
+                <div class="grid-4">
+                    <div v-for="(attr, index) in trpgAttrs" :key="index">
+                        <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 5px;">
+                        <input type="text" v-model="attr.val" placeholder="数值">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>外貌特征</h3></div>
+                <textarea v-model="char.appearance" placeholder="在此输入角色的外貌特征..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>背景设定</h3></div>
+                <textarea v-model="story" placeholder="在此输入角色的背景，回车换行会自动分段..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>能力/技能</h3></div>
+                <div class="syntax-hint">
+                    排版语法：输入 <code>[名词]</code> 会变为专属标签，输入 <code>{数值}</code> 会变为下划线粗体高亮。
+                </div>
+                <br>
+                <div v-for="(skill, index) in skills" :key="index" class="item-edit-box">
+                    <div class="item-head">
+                        <b style="color:#fff;">技能 {{ index + 1 }}</b>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span style="font-size:12px; color:#aaa;">专属颜色:</span>
+                            <input type="text" v-model="skill.color" class="skill-input-hex" maxlength="7">
+                            <input type="color" v-model="skill.color" class="color-mini">
+                            <button type="button" class="btn-small-danger" @click="removeSkill(index)" style="margin-left: 5px;">删除</button>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div><label>技能名</label><input type="text" v-model="skill.title" placeholder="如: ① 被动【蜕皮】"></div>
+                        <div><label>额外描述</label><input type="text" v-model="skill.tag" placeholder="如: LV.MAX"></div>
+                    </div>
+                    <label>技能描述</label>
+                    <textarea v-model="skill.desc" placeholder="支持使用[] 和 {} 快捷语法"></textarea>
+                </div>
+                <button type="button" class="btn-default" @click="addSkill" style="width: 100%; margin-top: 10px;">+ 添加新技能</button>
+            </div>
+
+            <div class="form-group">
+                <div class="form-header"><h3>附加图集 (差分/武器/细节)</h3></div>
+                <div v-for="(img, index) in gallery" :key="index" class="item-edit-box">
+                    <div class="item-head">
+                        <b style="color:#fff;">图片 {{ index + 1 }}</b>
+                        <button type="button" class="btn-small-danger" @click="removeGalleryImage(index)">删除</button>
+                    </div>
+                    <input type="file" accept="image/*" @change="handleGalleryUpload($event, index)" style="margin-bottom: 10px;">
+                    <img v-if="img.url" :src="img.url" style="max-height: 100px; display: block; margin-bottom: 10px;">
+                    <input type="text" v-model="img.caption" placeholder="图片描述 (选填)">
+                </div>
+                <button type="button" class="btn-default" @click="addGalleryImage" style="width: 100%; margin-top: 10px;">+ 添加新图片</button>
+            </div>
+
+        </div>
+
+        <!-- 预览面板 (长图画布) -->
+        <div class="preview-panel" v-show="isPreview">
+            <!-- 绑定色彩与特效 Class -->
+            <div id="card-content" 
+                 :class="{'bg-gradient': effects.gradient, 'effect-glass': effects.glass}"
+                 :style="{ '--theme': theme.primary, '--bg': theme.bg, '--bg-dark': computedDarkBg }">
+                
+                <!-- 优化后的真实纸张噪点图层 -->
+                <div class="texture-overlay" v-if="effects.texture" :style="{ backgroundImage: 'url(' + noiseBg + ')' }"></div>
+
+                <div class="page-content">
+                    
+                    <div class="section-block">
+                        <div class="header">
+                            <h1>{{ char.name || '角色名字' }}</h1>
+                            <div class="race">{{ char.enName || 'ENGLISH NAME' }} / {{ char.gender || '性别' }}</div>
+                        </div>
+
+                        <div class="info-layout">
+                            <div class="portrait-area">
+                                <div class="portrait-container content-box">
+                                    <img v-if="char.avatar" :src="char.avatar" alt="立绘">
+                                    <span v-else>未上传立绘</span>
+                                </div>
+                                <div class="attr-grid">
+                                    <div class="attr-card content-box" v-for="attr in attrs">
+                                        <span class="label">{{ attr.label || '属性' }}</span>
+                                        <span class="value">{{ attr.val || '0' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stats-area">
+                                <table class="data-table">
+                                    <tr><td>种族</td><td>{{ char.race }}</td></tr>
+                                    <tr><td>年龄</td><td>{{ char.age }}</td></tr>
+                                    <tr><td>身高</td><td>{{ char.height }}</td></tr>
+                                    <tr><td>体重</td><td>{{ char.weight }}</td></tr>
+                                    <tr><td>武器</td><td>{{ char.weapon }}</td></tr>
+                                    <tr><td>性格</td><td>{{ char.personality }}</td></tr>
+                                    <tr><td>喜欢</td><td>{{ char.likes }}</td></tr>
+                                    <tr><td>厌恶</td><td>{{ char.dislikes }}</td></tr>
+                                    <tr><td>普攻</td><td><span class="val-tag">{{ char.atk || '?' }}</span></td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 团卡扩展属性渲染 -->
+                        <div v-if="effects.trpg" class="trpg-attr-grid">
+                            <div class="attr-card content-box" v-for="attr in trpgAttrs" :key="attr.label">
+                                <span class="label">{{ attr.label }}</span>
+                                <span class="value">{{ attr.val || '0' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-block" v-if="char.appearance && char.appearance.trim()" :style="{ '--theme': storyColor }">
+                        <div class="header"><h2>外貌 / APPEARANCE</h2></div>
+                        <div class="story-section content-box">{{ char.appearance }}</div>
+                    </div>
+
+                    <div class="section-block" v-if="story && story.trim()" :style="{ '--theme': storyColor }">
+                        <div class="header"><h2>背景 / BACKGROUND</h2></div>
+                        <div class="story-section content-box">{{ story }}</div>
+                    </div>
+
+                    <div class="section-block" v-show="skills && skills.length > 0">
+                        <div class="header"><h2>能力 / SKILLS</h2></div>
+                        <div class="skill-section">
+                            <div class="skill-box content-box" v-for="(skill, index) in skills" :key="index" :style="{ '--theme': skill.color || theme.primary }">
+                                <div class="skill-title">
+                                    <span>{{ skill.title || '未知技能' }}</span>
+                                    <span>{{ skill.tag }}</span>
+                                </div>
+                                <div class="skill-desc" v-html="parseRichText(skill.desc)"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-block" v-show="gallery && gallery.length > 0">
+                        <div class="header" :style="{ '--theme': storyColor }">
+                            <h2 :style="{ color: storyColor }">图集 / GALLERY</h2>
+                        </div>
+                        <div class="gallery-grid">
+                            <div class="gallery-item content-box" v-for="(item, index) in gallery" :key="index" :style="{ '--theme': storyColor }">
+                                <div class="gallery-img-box">
+                                    <img v-if="item.url" :src="item.url" alt="图集图片">
+                                    <span v-else style="color:#aaa; font-size: 14px;">未上传图片</span>
+                                </div>
+                                <div class="gallery-caption" v-if="item.caption">{{ item.caption }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================= 星图粒子特效系统 (完美支持移动端触摸) =================
+    window._particleAccentHex = '#000000';
+
+    function initParticles() {
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        let particles =[];
+        let mouse = { x: -1000, y: -1000, click: false, clickTime: 0 };
+
+        // 桌面端鼠标事件
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mousedown', () => { mouse.click = true; mouse.clickTime = 20; });
+        window.addEventListener('mouseup', () => { mouse.click = false; });
+        
+        // 移动端触摸事件完美适配
+        window.addEventListener('touchstart', e => { 
+            if(e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX; 
+                mouse.y = e.touches[0].clientY; 
+                mouse.click = true; 
+                mouse.clickTime = 25; 
+            }
+        }, {passive: true});
+        window.addEventListener('touchmove', e => { 
+            if(e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX; 
+                mouse.y = e.touches[0].clientY; 
+            }
+        }, {passive: true});
+        window.addEventListener('touchend', () => { mouse.click = false; });
+        
+        window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; init(); });
+
+        function hexToRgb(hex) {
+            let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '200, 200, 200';
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vy = (Math.random() - 0.5) * 0.8;
+                this.radius = Math.random() * 1.5 + 0.5;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                let maxDist = mouse.clickTime > 0 ? 300 : 120;
+                let force = (maxDist - distance) / maxDist;
+
+                if (distance < maxDist) {
+                    let pushX = dx / distance;
+                    let pushY = dy / distance;
+                    let repelStrength = mouse.clickTime > 0 ? 30 : 1.5; 
+                    this.x -= pushX * force * repelStrength;
+                    this.y -= pushY * force * repelStrength;
+                }
+            }
+            draw(rgbStr) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${rgbStr}, 0.6)`;
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particles =[];
+            let amount = Math.floor((width * height) / 15000);
+            for (let i = 0; i < amount; i++) particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            let currentRgb = hexToRgb(window._particleAccentHex);
+            
+            if(mouse.clickTime > 0) mouse.clickTime--;
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw(currentRgb);
+                
+                for (let j = i; j < particles.length; j++) {
+                    let dx = particles[i].x - particles[j].x;
+                    let dy = particles[i].y - particles[j].y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 110) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(${currentRgb}, ${0.4 - dist/275})`;
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        init();
+        animate();
+    }
+    
+    window.onload = initParticles;
+
+    // ================= 动态噪点生成 (完美适配 html2canvas 渲染) =================
+    function generateNoiseTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 150; canvas.height = 150;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(150, 150);
+        for (let i = 0; i < imgData.data.length; i += 4) {
+            const v = Math.random() * 255;
+            imgData.data[i] = v > 128 ? 255 : 0; 
+            imgData.data[i+1] = v > 128 ? 255 : 0;
+            imgData.data[i+2] = v > 128 ? 255 : 0;
+            imgData.data[i+3] = Math.random() * 18; // 低透明度高对比噪点
+        }
+        ctx.putImageData(imgData, 0, 0);
+        return canvas.toDataURL('image/png');
+    }
+
+    // ================= Vue 主程序 =================
+    const { createApp } = Vue;
+
+    createApp({
+        data() {
+            return {
+                isPreview: false,
+                activeTab: 'guofeng', 
+                importText: '', 
+                noiseBg: generateNoiseTexture(),
+                
+                wbBg: '#ffffff',
+                wbPrimary: '#000000',
+                wbAccent: '#000000',
+
+                effects: {
+                    gradient: false,
+                    glass: false,
+                    texture: false,
+                    trpg: false // 新增跑团卡开关
+                },
+
+                presetsGuofeng:[
+                    { name: '明月石榴', colors:['#D3D4CD', '#B3392F'] },
+                    { name: '雪青紫罗', colors:['#BDB5D7', '#7356B1'] },
+                    { name: '萱草松绿', colors:['#C29E64', '#4C7543'] },
+                    { name: '碧山玉色', colors:['#FAF8F4', '#8BAF56'] },
+                    { name: '秋波若竹', colors:['#A5CCDC', '#84BB9F'] },
+                    { name: '海棠粉红', colors:['#FFC4BB', '#E36F85'] },
+                    { name: '碧落绀宇', colors:['#AFD0F2', '#003C75'] },
+                    { name: '十样烟墨', colors:['#FAC7B7', '#5D4F57'] },
+                    { name: '马尔斯绿', colors:['#FAD2E8', '#018081'] },
+                    { name: '金红青雀', colors:['#F49227', '#194955'] },
+                    { name: '蒂芙奶酪', colors:['#FBF7D8', '#81D8D1'] },
+                    { name: '东方浅云', colors:['#EDEDF4', '#8EA4CA'] },
+                    { name: '栀子绀蝶', colors:['#FEC13F', '#2D2E3D'] },
+                    { name: '雾灰普鲁', colors:['#E3DAD6', '#013054'] },
+                    { name: '退红西子', colors:['#F1D9E8', '#A2CFD5'] }
+                ],
+                presetsGemstone:[
+                    { name: '蓝色海岸', colors:['#E8BFE4', '#1EA1DA', '#0067B6'] },
+                    { name: '冰岛寒流', colors:['#7B98ED', '#2D4AC3', '#07135C'] },
+                    { name: '草莓碎冰', colors:['#F6D5D8', '#B87682', '#722B2D'] },
+                    { name: '初夏薄荷', colors:['#7ECEAE', '#1E7C52', '#1E5439'] },
+                    { name: '和风茉莉', colors:['#9EC1CB', '#A19666', '#078A90'] },
+                    { name: '黑择明',   colors:['#DBB9A8', '#A37172', '#0C0A0D'] },
+                    { name: '花悦梦意', colors:['#81CDD0', '#6043A8', '#253553'] },
+                    { name: '黄昏玫瑰', colors:['#E5BEEF', '#697FFF', '#F39872'] }
+                ],
+
+                theme: { bg: '#ffffff', primary: '#000000' },
+                storyColor: "#000000",
+                char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', weapon: '', atk: '', appearance: '', avatar: '' },
+                attrs:[ { label: '生命', val: '' }, { label: '速度', val: '' }, { label: '力量', val: '' }, { label: '幸运', val: '' } ],
+                
+                // 新增跑团属性 (TRPG)
+                trpgAttrs:[
+                    { label: '理智', val: '' }, { label: '智慧', val: '' },
+                    { label: '魅力', val: '' }, { label: '敏捷', val: '' },
+                    { label: '搏斗', val: '' }, { label: '话术', val: '' },
+                    { label: '技巧', val: '' }, { label: '感知', val: '' }
+                ],
+
+                story: "",
+                skills:[],
+                gallery:[]
+            }
+        },
+        computed: {
+            computedDarkBg() {
+                let color = this.theme.bg.replace('#', '');
+                if(color.length === 3) color = color.split('').map(c => c+c).join('');
+                let num = parseInt(color, 16) || 0xffffff;
+                let r = (num >> 16) - 45;
+                let g = ((num >> 8) & 0x00FF) - 45;
+                let b = (num & 0x0000FF) - 45;
+                r = Math.max(0, Math.min(255, r));
+                g = Math.max(0, Math.min(255, g));
+                b = Math.max(0, Math.min(255, b));
+                return '#' + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
+            }
+        },
+        created() {
+            this.loadData();
+            window._particleAccentHex = this.wbAccent; 
+        },
+        watch: {
+            char: { handler() { this.saveData(); }, deep: true },
+            attrs: { handler() { this.saveData(); }, deep: true },
+            trpgAttrs: { handler() { this.saveData(); }, deep: true },
+            story: { handler() { this.saveData(); } },
+            skills: { handler() { this.saveData(); }, deep: true },
+            gallery: { handler() { this.saveData(); }, deep: true },
+            effects: { handler() { this.saveData(); }, deep: true }
+        },
+        methods: {
+            parseTemplate() {
+                if (!this.importText.trim()) return;
+                const lines = this.importText.split('\n');
+                let currentKey = null;
+
+                const keyMap = {
+                    '姓名': 'name', '性别': 'gender', '种族': 'race',
+                    '年龄': 'age', '身高': 'height', '体重': 'weight',
+                    '性格': 'personality', '喜好/喜欢': 'likes', '喜好': 'likes', '喜欢': 'likes',
+                    '厌恶': 'dislikes', '外貌': 'appearance', '背景': 'story',
+                    '武器': 'weapon', '普攻伤害': 'atk', '普攻': 'atk',
+                    '生命': 'attr_生命', '力量': 'attr_力量', '速度': 'attr_速度', '幸运': 'attr_幸运',
+                    // 新增团卡属性抓取映射
+                    '理智': 'trpg_理智', '智慧': 'trpg_智慧', '魅力': 'trpg_魅力', '敏捷': 'trpg_敏捷',
+                    '搏斗': 'trpg_搏斗', '话术': 'trpg_话术', '技巧': 'trpg_技巧', '感知': 'trpg_感知',
+                    '能力': 'ignore', '技能': 'ignore' 
+                };
+
+                for (let line of lines) {
+                    const match = line.match(/^\s*(姓名|性别|种族|年龄|身高|体重|性格|喜好\/喜欢|喜好|喜欢|厌恶|外貌|背景|武器|普攻伤害|普攻|生命|力量|速度|幸运|理智|智慧|魅力|敏捷|搏斗|话术|技巧|感知|能力|技能)\s*[:：]\s*(.*)$/);
+                    if (match) {
+                        const key = match[1];
+                        const value = match[2].trim();
+                        const mappedKey = keyMap[key];
+                        currentKey = mappedKey;
+
+                        if (mappedKey && mappedKey !== 'ignore') {
+                            if (mappedKey.startsWith('attr_')) {
+                                const attrName = mappedKey.split('_')[1];
+                                const attr = this.attrs.find(a => a.label === attrName);
+                                if (attr) attr.val = value;
+                            } else if (mappedKey.startsWith('trpg_')) {
+                                const attrName = mappedKey.split('_')[1];
+                                const attr = this.trpgAttrs.find(a => a.label === attrName);
+                                if (attr) { 
+                                    attr.val = value;
+                                    this.effects.trpg = true; // 自动开启开关
+                                }
+                            } else if (mappedKey === 'story') {
+                                this.story = value;
+                            } else {
+                                this.char[mappedKey] = value;
+                            }
+                        }
+                    } else {
+                        if (currentKey && currentKey !== 'ignore') {
+                            if (currentKey === 'story') {
+                                this.story += (this.story ? '\n' : '') + line.trim();
+                            } else if (currentKey === 'appearance') {
+                                this.char.appearance += (this.char.appearance ? '\n' : '') + line.trim();
+                            } else if (!currentKey.startsWith('attr_') && !currentKey.startsWith('trpg_')) {
+                                this.char[currentKey] += (this.char[currentKey] ? ' ' : '') + line.trim();
+                            }
+                        }
+                    }
+                }
+                alert('文本识别导入完成！');
+                this.importText = ''; 
+            },
+
+            swapColors(key1, key2) {
+                const temp = this[key1];
+                this[key1] = this[key2];
+                this[key2] = temp;
+                this.syncTheme();
+            },
+            applyPreset(preset) {
+                this.wbBg = preset.colors[0];
+                this.wbPrimary = preset.colors[1];
+                this.wbAccent = preset.colors[2] || preset.colors[1];
+                this.syncTheme();
+            },
+            syncTheme() {
+                this.theme.bg = this.wbBg;
+                this.theme.primary = this.wbPrimary;
+                this.storyColor = this.wbAccent;
+                this.skills.forEach(skill => { skill.color = this.wbAccent; });
+                window._particleAccentHex = this.wbAccent; 
+                this.saveData(); 
+            },
+            saveData() {
+                const dataToSave = {
+                    wbBg: this.wbBg, wbPrimary: this.wbPrimary, wbAccent: this.wbAccent,
+                    char: this.char, attrs: this.attrs, trpgAttrs: this.trpgAttrs, 
+                    story: this.story, skills: this.skills, gallery: this.gallery, effects: this.effects
+                };
+                try { localStorage.setItem('charCardGeneratorData_ImgVer', JSON.stringify(dataToSave)); } catch (e) { }
+            },
+            loadData() {
+                const saved = localStorage.getItem('charCardGeneratorData_ImgVer');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        if(parsed.wbBg) {
+                            this.wbBg = parsed.wbBg; this.wbPrimary = parsed.wbPrimary; this.wbAccent = parsed.wbAccent;
+                            this.theme.bg = this.wbBg; this.theme.primary = this.wbPrimary; this.storyColor = this.wbAccent;
+                        }
+                        if(parsed.char) this.char = parsed.char;
+                        if(parsed.attrs) this.attrs = parsed.attrs;
+                        if(parsed.trpgAttrs) this.trpgAttrs = parsed.trpgAttrs;
+                        if(parsed.story !== undefined) this.story = parsed.story;
+                        if(parsed.skills) this.skills = parsed.skills;
+                        if(parsed.gallery) this.gallery = parsed.gallery;
+                        if(parsed.effects) this.effects = parsed.effects;
+                    } catch (e) { }
+                }
+            },
+            resetData() {
+                if (confirm("确定清空重置？此操作不可逆！")) {
+                    localStorage.removeItem('charCardGeneratorData_ImgVer');
+                    location.reload(); 
+                }
+            },
+            togglePreview() {
+                this.isPreview = !this.isPreview;
+                if(this.isPreview) window.scrollTo(0, 0);
+            },
+            parseRichText(text) {
+                if (typeof text !== 'string' || !text) return '';
+                let safe = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                return safe.replace(/\[(.*?)\]/g, '<i class="tag">$1</i>').replace(/\{(.*?)\}/g, '<span class="val-tag">$1</span>');
+            },
+            processImage(file, callback) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > h) { if (w > 800) { h *= 800/w; w = 800; } } else { if (h > 800) { w *= 800/h; h = 800; } }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        callback(canvas.toDataURL('image/jpeg', 0.85));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            },
+            handleMainImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.processImage(file, (dataUrl) => {
+                        this.char.avatar = dataUrl;
+                    });
+                }
+            },
+            handleGalleryUpload(event, index) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.processImage(file, (dataUrl) => {
+                        this.gallery[index].url = dataUrl;
+                    });
+                }
+            },
+            addSkill() {
+                this.skills.push({ title: '', tag: '', desc: '', color: this.wbAccent });
+            },
+            removeSkill(index) {
+                this.skills.splice(index, 1);
+            },
+            addGalleryImage() {
+                this.gallery.push({ url: '', caption: '' });
+            },
+            removeGalleryImage(index) {
+                this.gallery.splice(index, 1);
+            },
+            async exportImage() {
+                if (!this.isPreview) {
+                    this.isPreview = true;
+                    await this.$nextTick(); 
+                    await new Promise(r => setTimeout(r, 600)); 
+                }
+                window.scrollTo(0, 0);
+
+                const element = document.getElementById('card-content');
+                const btnTexts = document.querySelectorAll('.btn-primary');
+                btnTexts.forEach(btn => btn.innerText = "绘制中...");
+
+                html2canvas(element, {
+                    scale: 2, 
+                    useCORS: true,
+                    backgroundColor: this.effects.gradient ? '#ffffff' : this.theme.bg, 
+                    logging: false
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `${this.char.name || '角色'}_角色卡.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    btnTexts.forEach(btn => btn.innerText = "导出高清长图");
+                }).catch(err => {
+                    alert("生成失败，请重试。");
+                    btnTexts.forEach(btn => btn.innerText = "导出高清长图");
+                });
+            }
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
