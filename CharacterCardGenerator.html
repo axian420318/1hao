@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -265,7 +266,7 @@
                     <h3>智能文本识别导入</h3>
                 </div>
                 <div class="syntax-hint" style="margin-bottom: 10px;">
-                    将群内的人设模板粘贴在此处，点击识别即可自动填入。支持多行内容，属性括号备注会自动净化剔除，遇到“能力”、“技能”或“属性”字样会自动停止或跳过。
+                    将群内的人设模板粘贴在此处，点击识别即可自动填入。支持多行内容，属性括号备注会自动净化剔除，能识别“携带物品：/:”“职业：/:”，遇到“能力”、“技能”或“属性”字样会自动停止或跳过。
                 </div>
                 <textarea v-model="importText" placeholder="在此粘贴模板文本..." style="min-height: 120px;"></textarea>
                 <button type="button" class="btn-primary" @click="parseTemplate" style="width: 100%; margin-top: 10px;">识别并导入信息</button>
@@ -364,7 +365,8 @@
                     <div><label>年龄</label><input type="text" v-model="char.age"></div>
                     <div><label>身高</label><input type="text" v-model="char.height"></div>
                     <div><label>体重</label><input type="text" v-model="char.weight"></div>
-                    <div><label>武器</label><input type="text" v-model="char.weapon"></div>
+                    <div><label>{{ effects.trpg ? '携带物品' : '武器' }}</label><input type="text" v-model="char.weapon"></div>
+                    <div v-if="effects.trpg"><label>职业</label><input type="text" v-model="char.profession"></div>
                     <div><label>普攻伤害</label><input type="text" v-model="char.atk"></div>
                     <div><label>性格</label><input type="text" v-model="char.personality"></div>
                     <div><label>喜欢</label><input type="text" v-model="char.likes"></div>
@@ -475,7 +477,8 @@
                                     <tr><td>年龄</td><td>{{ char.age }}</td></tr>
                                     <tr><td>身高</td><td>{{ char.height }}</td></tr>
                                     <tr><td>体重</td><td>{{ char.weight }}</td></tr>
-                                    <tr><td>武器</td><td>{{ char.weapon }}</td></tr>
+                                    <tr><td>{{ effects.trpg ? '携带物品' : '武器' }}</td><td>{{ char.weapon }}</td></tr>
+                                    <tr v-if="effects.trpg"><td>职业</td><td>{{ char.profession }}</td></tr>
                                     <tr><td>性格</td><td>{{ char.personality }}</td></tr>
                                     <tr><td>喜欢</td><td>{{ char.likes }}</td></tr>
                                     <tr><td>厌恶</td><td>{{ char.dislikes }}</td></tr>
@@ -720,7 +723,7 @@
 
                 theme: { bg: '#ffffff', primary: '#000000' },
                 storyColor: "#000000",
-                char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', weapon: '', atk: '', appearance: '', avatar: '' },
+                char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', weapon: '', profession: '', atk: '', appearance: '', avatar: '' },
                 attrs:[ { label: '生命', val: '' }, { label: '速度', val: '' }, { label: '力量', val: '' }, { label: '幸运', val: '' } ],
                 
                 trpgAttrs:[
@@ -779,7 +782,7 @@
                     '年龄': 'age', '身高': 'height', '体重': 'weight',
                     '性格': 'personality', '喜好/喜欢': 'likes', '喜好': 'likes', '喜欢': 'likes',
                     '厌恶': 'dislikes', '外貌': 'appearance', '背景': 'story',
-                    '武器': 'weapon', '普攻伤害': 'atk', '普攻': 'atk',
+                    '武器': 'weapon', '携带物品': 'weapon', '职业': 'profession', '普攻伤害': 'atk', '普攻': 'atk',
                     '生命': 'attr_生命', '力量': 'attr_力量', '速度': 'attr_速度', '幸运': 'attr_幸运',
                     '理智': 'trpg_理智', '智慧': 'trpg_智慧', '魅力': 'trpg_魅力', '敏捷': 'trpg_敏捷',
                     '搏斗': 'trpg_搏斗', '话术': 'trpg_话术', '技巧': 'trpg_技巧', '感知': 'trpg_感知',
@@ -787,7 +790,7 @@
                 };
 
                 for (let line of lines) {
-                    const match = line.match(/^\s*(姓名|性别|种族|年龄|身高|体重|性格|喜好\/喜欢|喜好|喜欢|厌恶|外貌|背景|武器|普攻伤害|普攻|生命|力量|速度|幸运|理智|智慧|魅力|敏捷|搏斗|话术|技巧|感知|能力|技能|属性)\s*[:：]\s*(.*)$/);
+                    const match = line.match(/^\s*(姓名|性别|种族|年龄|身高|体重|性格|喜好\/喜欢|喜好|喜欢|厌恶|外貌|背景|武器|携带物品|职业|普攻伤害|普攻|生命|力量|速度|幸运|理智|智慧|魅力|敏捷|搏斗|话术|技巧|感知|能力|技能|属性)\s*(?:[:：]|\/:)\s*(.*)$/);
                     if (match) {
                         const key = match[1];
                         let value = match[2].trim();
