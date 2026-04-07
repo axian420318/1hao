@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=0.5, maximum-scale=5.0">
     <title>角色卡生成器</title>
+    <link rel="icon" href="https://i.imgs.ovh/2026/04/06/ZQIHAM.th.jpeg" type="image/jpeg">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -25,7 +27,6 @@
             overflow-x: hidden;
         }
 
-        /* 动态互动背景画布 - 严格置于最底层 */
         #particle-canvas {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: -1; pointer-events: none;
@@ -57,13 +58,14 @@
         .form-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; padding-bottom: 10px; }
         .form-header h3 { margin: 0; font-size: 16px; color: #fff; }
         
-        label { display: block; margin: 12px 0 6px; font-size: 13px; color: #aaa; }
+        label { display: block; margin: 12px 0 6px; font-size: 13px; color: #aaa; cursor: pointer;}
         input[type="text"], input[type="number"], textarea {
             width: 100%; padding: 10px; box-sizing: border-box;
             background: #12121a; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; transition: 0.3s;
         }
         input:focus, textarea:focus { border-color: #88c0d0; outline: none; }
         textarea { resize: vertical; min-height: 80px; }
+        input[type="range"] { padding: 0; background: transparent; border: none; cursor: pointer; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
@@ -129,7 +131,7 @@
 
         .effect-toggles { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
         .effect-toggles label { margin: 0; display: flex; align-items: center; gap: 5px; font-size: 13px; color: #ccc; cursor: pointer;}
-        .effect-toggles input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        .effect-toggles input[type="radio"], .effect-toggles input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
 
         .preview-panel { 
             width: 100%; 
@@ -171,10 +173,32 @@
             background-color: rgba(210, 200, 180, 0.15); 
         }
 
+        /* ----- 全局卡牌装帧系统 ----- */
+        .watermark-bg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 700px; height: 700px; opacity: 0.25; pointer-events: none; z-index: 1;
+            color: var(--theme); display: flex; justify-content: center; align-items: center;
+        }
+        .watermark-bg svg { width: 100%; height: 100%; }
+        
+        .ornament-corners {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 40; overflow: hidden;
+        }
+        .corner-piece {
+            position: absolute; width: 85px; height: 85px; color: var(--theme); opacity: 1;
+        }
+        .corner-piece svg { width: 100%; height: 100%; }
+        .corner-piece.top-left { top: 15px; left: 15px; }
+        .corner-piece.top-right { top: 15px; right: 15px; transform: scaleX(-1); }
+        .corner-piece.bottom-left { bottom: 15px; left: 15px; transform: scaleY(-1); }
+        .corner-piece.bottom-right { bottom: 15px; right: 15px; transform: scale(-1, -1); }
+        /* -------------------------------------------------- */
+
         .section-block { margin-bottom: 40px; position: relative; z-index: 2;}
 
         .header { border-bottom: 6px solid var(--theme); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .header h1 { font-size: 55px; margin: 0; font-weight: 900; letter-spacing: 5px; color: var(--theme); }
+        .header h1 { font-size: 55px; margin: 0; font-weight: 900; letter-spacing: 5px; color: var(--theme); text-shadow: 2px 2px 0px rgba(255,255,255,0.8); }
         .header .race { font-size: 20px; font-weight: bold; background: var(--theme); color: #fff; padding: 4px 12px; }
         .header h2 { font-size: 32px; margin: 0; letter-spacing: 2px; color: var(--theme); }
 
@@ -194,11 +218,41 @@
         .combined-attr-grid.twelve-items { grid-template-columns: repeat(6, 1fr); }
         .combined-attr-grid.four-items { grid-template-columns: repeat(4, 1fr); }
         
+        /* 默认样式 */
         .content-box { border: 2px solid var(--theme); background: rgba(255,255,255,0.85); box-shadow: 5px 5px 0px var(--theme); }
+        
+        /* 1. 毛玻璃风格 */
         .effect-glass .content-box { 
             background: rgba(255,255,255,0.45); backdrop-filter: blur(12px); 
             box-shadow: 5px 5px 0px rgba(0,0,0,0.1); border-color: rgba(255,255,255,0.6); 
         }
+        .effect-glass .skill-title { background: rgba(0,0,0,0.6); }
+
+        /* 2. 工业金属风 */
+        .effect-metal .content-box {
+            background: linear-gradient(135deg, rgba(250, 250, 252, 0.95) 0%, rgba(220, 225, 230, 0.95) 100%);
+            border: 2px solid var(--theme);
+            border-radius: 2px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 5px 5px 0px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .effect-metal .content-box::after {
+            content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border: 1px solid rgba(0,0,0,0.1); pointer-events: none;
+        }
+        .effect-metal .header { border-bottom: 4px double var(--theme); position: relative; padding-bottom: 6px;}
+        .effect-metal .skill-title {
+            background: var(--theme); color: #fff;
+            border: 1px solid #000; 
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2);
+            font-family: monospace, sans-serif; text-transform: uppercase;
+        }
+        .effect-metal .attr-card {
+            border: 1px solid var(--theme); border-radius: 2px;
+            background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(0,0,0,0.04) 4px, rgba(0,0,0,0.04) 8px);
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        .effect-metal .portrait-container { border: 3px solid var(--theme); border-radius: 2px; position: relative; }
 
         .attr-card { padding: 10px; text-align: center; }
         .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
@@ -209,7 +263,7 @@
         .skill-section { margin-top: 20px; }
         .skill-box { margin-bottom: 20px; }
         .skill-title { background: var(--theme); color: #fff; padding: 8px 15px; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; }
-        .effect-glass .skill-title { background: rgba(0,0,0,0.6); }
+        
         .skill-desc { padding: 15px; font-size: 16px; line-height: 1.8; text-align: justify; white-space: pre-wrap; word-break: break-all; }
 
         .tag { background: var(--theme); color: #fff; padding: 2px 8px; font-style: normal; font-weight: bold; border-radius: 4px; margin: 0 2px; }
@@ -235,6 +289,152 @@
 <body>
 
 <canvas id="particle-canvas"></canvas>
+
+<!-- 独立的高级装帧渲染系统 -->
+<script type="text/x-template" id="ornament-template">
+    <div v-if="effects.ornament !== 'none'">
+        
+        <!-- 自定义水印底图 -->
+        <div class="watermark-bg" v-if="effects.ornament === 'custom' && effects.customOrnamentUrl" 
+             :style="{ opacity: effects.customOrnamentOpacity / 100 }">
+             <img :src="effects.customOrnamentUrl" 
+                  :style="{ width: effects.customOrnamentSize + '%', height: effects.customOrnamentSize + '%', objectFit: 'contain' }">
+        </div>
+
+        <!-- 预设水印底图 -->
+        <div class="watermark-bg" v-if="effects.ornament !== 'custom'">
+            <!-- 典雅星盘 -->
+            <svg v-if="effects.ornament === 'elegant'" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 2"/>
+                <path d="M50 2 L55 45 L98 50 L55 55 L50 98 L45 55 L2 50 L45 45 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M50 15 L52 48 L85 50 L52 52 L50 85 L48 52 L15 50 L48 48 Z" fill="currentColor"/>
+            </svg>
+            <!-- 几何万花筒 -->
+            <svg v-if="effects.ornament === 'kaleido'" viewBox="0 0 100 100">
+                <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(0 50 50)"/>
+                <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(30 50 50)"/>
+                <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(60 50 50)"/>
+                <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2 4"/>
+                <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                <path d="M50 0 L100 50 L50 100 L0 50 Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <!-- 占星幻夜 -->
+            <svg v-if="effects.ornament === 'starry'" viewBox="0 0 100 100">
+                <path d="M50 10 A40 40 0 1 1 10 50 A30 30 0 1 0 50 10 Z" fill="currentColor" opacity="0.9"/>
+                <path d="M40 40 L42 30 L44 40 L54 42 L44 44 L42 54 L40 44 L30 42 Z" fill="currentColor"/>
+                <path d="M70 20 L71 15 L72 20 L77 21 L72 22 L71 27 L70 22 L65 21 Z" fill="currentColor"/>
+                <path d="M20 70 L22 60 L24 70 L34 72 L24 74 L22 84 L20 74 L10 72 Z" fill="currentColor"/>
+            </svg>
+            <!-- 涟漪流水 -->
+            <svg v-if="effects.ornament === 'water'" viewBox="0 0 100 100">
+                <path d="M0 50 Q 25 20, 50 50 T 100 50 Q 75 80, 50 50 T 0 50" fill="none" stroke="currentColor" stroke-width="3" opacity="0.8"/>
+                <path d="M0 30 Q 25 0, 50 30 T 100 30 Q 75 60, 50 30 T 0 30" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+                <path d="M0 70 Q 25 40, 50 70 T 100 70 Q 75 100, 50 70 T 0 70" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+                <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                <circle cx="50" cy="50" r="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="5 5"/>
+                <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            </svg>
+            <!-- 藤蔓繁花 (恢复初版设计) -->
+            <svg v-if="effects.ornament === 'floral'" viewBox="0 0 100 100">
+                <path d="M50 50 C 30 10, 70 10, 50 50" fill="currentColor" opacity="0.7"/>
+                <path d="M50 50 C 90 30, 90 70, 50 50" fill="currentColor" opacity="0.7"/>
+                <path d="M50 50 C 70 90, 30 90, 50 50" fill="currentColor" opacity="0.7"/>
+                <path d="M50 50 C 10 70, 10 30, 50 50" fill="currentColor" opacity="0.7"/>
+                <circle cx="50" cy="50" r="8" fill="none" stroke="currentColor" stroke-width="3"/>
+                <path d="M50 50 Q 10 10, 20 0 M50 50 Q 90 10, 80 0 M50 50 Q 90 90, 100 80 M50 50 Q 10 90, 0 80" fill="none" stroke="currentColor" stroke-width="2" opacity="0.8"/>
+            </svg>
+            <!-- 火焰纹章 -->
+            <svg v-if="effects.ornament === 'fire'" viewBox="0 0 100 100">
+                <path d="M 20 15 L 80 15 L 80 50 C 80 75, 50 95, 50 95 C 50 95, 20 75, 20 50 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                <path d="M 50 35 C 30 65, 45 80, 50 85 C 55 80, 70 65, 50 35 Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+                <path d="M 50 50 C 40 70, 45 75, 50 80 C 55 75, 60 70, 50 50 Z" fill="currentColor" opacity="0.8"/>
+                <path d="M 30 25 L 70 25 M 40 20 L 60 20" stroke="currentColor" stroke-width="2.5"/>
+            </svg>
+            <!-- 空之轨迹 -->
+            <svg v-if="effects.ornament === 'sky'" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <polygon points="50,15 80.3,32.5 80.3,67.5 50,85 19.7,67.5 19.7,32.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                <line x1="50" y1="15" x2="50" y2="85" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="19.7" y1="32.5" x2="80.3" y2="67.5" stroke="currentColor" stroke-width="1.5"/>
+                <line x1="19.7" y1="67.5" x2="80.3" y2="32.5" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="50" cy="50" r="15" fill="none" stroke="currentColor" stroke-width="3"/>
+                <circle cx="50" cy="50" r="6" fill="currentColor"/>
+                <circle cx="50" cy="15" r="4" fill="currentColor"/>
+                <circle cx="80.3" cy="32.5" r="4" fill="currentColor"/>
+                <circle cx="80.3" cy="67.5" r="4" fill="currentColor"/>
+                <circle cx="50" cy="85" r="4" fill="currentColor"/>
+                <circle cx="19.7" cy="67.5" r="4" fill="currentColor"/>
+                <circle cx="19.7" cy="32.5" r="4" fill="currentColor"/>
+            </svg>
+            <!-- 蜘蛛网 -->
+            <svg v-if="effects.ornament === 'spider'" viewBox="0 0 100 100">
+                <path d="M50 0 L50 100 M0 50 L100 50 M15 15 L85 85 M15 85 L85 15" stroke="currentColor" stroke-width="1.5"/>
+                <polygon points="50,20 71,29 80,50 71,71 50,80 29,71 20,50 29,29" fill="none" stroke="currentColor" stroke-width="2"/>
+                <polygon points="50,35 60.5,39.5 65,50 60.5,60.5 50,65 39.5,60.5 35,50 39.5,39.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="50" cy="50" r="4" fill="currentColor"/>
+            </svg>
+        </div>
+        
+        <!-- 四周边角花纹 (自定义模式无角标) -->
+        <div class="ornament-corners" v-if="effects.ornament !== 'custom'">
+            <div class="corner-piece" v-for="pos in ['top-left', 'top-right', 'bottom-left', 'bottom-right']" :class="pos" :key="pos">
+                <!-- 典雅边框 -->
+                <svg v-if="effects.ornament === 'elegant'" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6">
+                    <path d="M0 0 L100 0 M0 0 L0 100 M20 20 L100 20 M20 20 L20 100"/>
+                </svg>
+                <!-- 万花筒角标 -->
+                <svg v-if="effects.ornament === 'kaleido'" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="5">
+                    <polygon points="0,0 100,0 0,100" fill="currentColor" opacity="0.25"/>
+                    <path d="M0 0 L100 0 L0 100 Z"/>
+                    <path d="M15 15 L70 15 L15 70 Z"/>
+                </svg>
+                <!-- 星空角标 -->
+                <svg v-if="effects.ornament === 'starry'" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M0 0 L100 0 L85 15 L15 15 L15 85 L0 100 Z" opacity="0.9"/>
+                    <path d="M35 35 L40 15 L45 35 L65 40 L45 45 L40 65 L35 45 L15 40 Z"/>
+                </svg>
+                <!-- 流水角标 -->
+                <svg v-if="effects.ornament === 'water'" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="7">
+                    <path d="M0 0 Q 50 0, 100 50 Q 50 50, 50 100 Q 0 50, 0 0" fill="currentColor" opacity="0.25"/>
+                    <path d="M0 15 Q 40 15, 85 60"/>
+                    <path d="M15 0 Q 15 40, 60 85"/>
+                </svg>
+                <!-- 藤蔓繁花 (恢复初版设计) -->
+                <svg v-if="effects.ornament === 'floral'" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M0 0 Q 50 0, 100 100" fill="none" stroke="currentColor" stroke-width="6"/>
+                    <path d="M25 5 C 45 5, 45 25, 25 25 C 5 25, 5 5, 25 5" opacity="0.8"/>
+                    <path d="M5 25 C 25 25, 25 45, 5 45 C -5 45, -5 25, 5 25" opacity="0.8"/>
+                    <path d="M50 25 C 75 25, 75 45, 50 45 C 25 45, 25 25, 50 25" opacity="0.8"/>
+                </svg>
+                <!-- 火焰纹章角标 -->
+                <svg v-if="effects.ornament === 'fire'" viewBox="0 0 100 100">
+                    <path d="M0 0 C 40 0, 60 20, 100 0 C 60 40, 80 60, 100 100 C 60 60, 40 80, 0 100 C 20 60, 0 40, 0 0 Z" fill="currentColor" opacity="0.3"/>
+                    <path d="M0 0 Q 30 10, 50 50 Q 10 30, 0 0 Z" fill="currentColor"/>
+                    <path d="M50 50 Q 80 40, 100 20 Q 60 80, 20 100 Q 40 80, 50 50 Z" fill="none" stroke="currentColor" stroke-width="3"/>
+                </svg>
+                <!-- 空之轨迹角标 -->
+                <svg v-if="effects.ornament === 'sky'" viewBox="0 0 100 100">
+                    <path d="M 0 5 L 80 5 L 95 20 L 95 100" fill="none" stroke="currentColor" stroke-width="4"/>
+                    <path d="M 0 15 L 70 15 L 85 30 L 85 100" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="80" cy="20" r="5" fill="currentColor"/>
+                    <circle cx="70" cy="30" r="3" fill="currentColor"/>
+                    <path d="M 0 0 L 25 0 L 25 25 L 0 25 Z" fill="currentColor" opacity="0.6"/>
+                </svg>
+                <!-- 蜘蛛网角标 (已去除悬挂蜘蛛) -->
+                <svg v-if="effects.ornament === 'spider'" viewBox="0 0 100 100">
+                    <path d="M0 0 L100 0 M0 0 L0 100 M0 0 L70 70 M0 0 L85 35 M0 0 L35 85" stroke="currentColor" stroke-width="2.5"/>
+                    <path d="M0 25 Q 15 25, 30 15 Q 35 0, 35 0" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M0 50 Q 25 50, 45 35 Q 60 15, 60 0" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M0 80 Q 40 80, 60 60 Q 80 40, 80 0" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+</script>
+
 
 <div id="app">
     <div class="navbar">
@@ -262,7 +462,6 @@
                 </div>
                 <div class="syntax-hint" style="margin-bottom: 10px;">
                     将群内的人设模板粘贴在此处，点击识别即可自动填入。<br>
-
                 </div>
                 <textarea v-model="importText" placeholder="在此粘贴模板文本..." style="min-height: 120px;"></textarea>
                 <button type="button" class="btn-primary" @click="parseTemplate" style="width: 100%; margin-top: 10px;">识别并导入信息</button>
@@ -314,10 +513,55 @@
                 </div>
 
                 <div class="effect-toggles">
-                    <label><input type="checkbox" v-model="effects.gradient"> 开启渐变色背景</label>
-                    <label><input type="checkbox" v-model="effects.glass"> 开启毛玻璃质感</label>
-                    <label><input type="checkbox" v-model="effects.texture"> 覆盖复古纸张纹理</label>
-                    <label style="color: #4caf50; font-weight: bold;"><input type="checkbox" v-model="effects.trpg"> 开启跑团卡扩展属性</label>
+                    <div style="width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 14px; font-weight: bold; color: #fff;">边框艺术风格 (单选)：</span><br>
+                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="radio" value="none" v-model="effects.styleMode"> 默认经典边框</label>
+                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="radio" value="glass" v-model="effects.styleMode"> 毛玻璃质感</label>
+                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="radio" value="metal" v-model="effects.styleMode"> 工业金属风</label>
+                    </div>
+
+                    <div style="width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 14px; font-weight: bold; color: #f4c227;">全局主题装帧 (单选，超清大图水印与角花)：</span><br>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;">
+                            <label style="display:flex; align-items:center;"><input type="radio" value="none" v-model="effects.ornament"> 无装帧</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="elegant" v-model="effects.ornament"> 典雅星盘</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="kaleido" v-model="effects.ornament"> 几何万花筒</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="starry" v-model="effects.ornament"> 占星幻夜</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="water" v-model="effects.ornament"> 涟漪流水</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="floral" v-model="effects.ornament"> 藤蔓繁花</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="fire" v-model="effects.ornament"> 火焰纹章</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="sky" v-model="effects.ornament"> 空之轨迹</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="spider" v-model="effects.ornament"> 蜘蛛网</label>
+                            <label style="display:flex; align-items:center; color: #88c0d0; font-weight: bold;"><input type="radio" value="custom" v-model="effects.ornament"> 自定义图案</label>
+                        </div>
+                        
+                        <!-- 自定义水印专属设置界面 -->
+                        <div v-if="effects.ornament === 'custom'" class="item-edit-box" style="margin-top: 15px; background: rgba(0,0,0,0.3);">
+                            <div class="item-head"><b style="color:#f4c227;">自定义中心装帧设置</b></div>
+                            <label style="color: #fff;">1. 上传图片 (强烈建议使用透明底色的 PNG 图标)</label>
+                            <input type="file" accept="image/png, image/jpeg, image/webp" @change="handleCustomOrnamentUpload" style="margin-bottom: 10px;">
+                            
+                            <div v-if="effects.customOrnamentUrl">
+                                <div style="display:flex; gap: 20px; align-items:center; margin-top: 10px;">
+                                    <div style="flex:1;">
+                                        <label style="color:#aaa;">缩放大小: {{ effects.customOrnamentSize }}%</label>
+                                        <input type="range" v-model="effects.customOrnamentSize" min="10" max="150" style="width:100%;">
+                                    </div>
+                                    <div style="flex:1;">
+                                        <label style="color:#aaa;">不透明度: {{ effects.customOrnamentOpacity }}%</label>
+                                        <input type="range" v-model="effects.customOrnamentOpacity" min="1" max="100" style="width:100%;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="width: 100%;">
+                        <span style="font-size: 14px; font-weight: bold; color: #fff;">基础特效开关：</span><br>
+                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="checkbox" v-model="effects.gradient"> 开启渐变色背景</label>
+                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="checkbox" v-model="effects.texture"> 覆盖复古纸张纹理</label>
+                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px; color: #4caf50; font-weight: bold;"><input type="checkbox" v-model="effects.trpg"> 开启跑团卡扩展属性</label>
+                    </div>
                 </div>
 
                 <div class="preset-tabs" style="margin-top: 20px;">
@@ -406,7 +650,7 @@
                     排版语法说明：<br>
                     • <code>[名词]</code> 生成标准标签 <br>
                     • <code>{数值}</code> 生成下划线加粗高亮 <br>
-                    • <code>【层名】</code> 或 <code>&lt;状态名&gt;</code> (如K语言术语) 生成带有专属渐变背景的亮眼标签！
+                    • <code>【层名】</code> 或 <code>&lt;状态名&gt;</code> 生成带有专属渐变背景的亮眼标签
                 </div>
                 <br>
                 <div v-for="(skill, index) in skills" :key="index" class="item-edit-box">
@@ -447,12 +691,17 @@
 
         <div class="preview-panel" v-show="isPreview">
             <div id="card-content" 
-                 :class="{'bg-gradient': effects.gradient, 'effect-glass': effects.glass}"
+                 :class="{'bg-gradient': effects.gradient, 'effect-glass': effects.styleMode === 'glass', 'effect-metal': effects.styleMode === 'metal'}"
                  :style="{ '--theme': theme.primary, '--bg': theme.bg, '--bg-dark': computedDarkBg }">
                 
+                <!-- 页面 1：基础信息 -->
                 <div class="page-block">
+                    <!-- 纸张纹理层 -->
                     <div class="texture-overlay" v-if="effects.texture" :style="{ backgroundImage: 'url(' + noiseBg + ')' }"></div>
                     
+                    <!-- 挂载装帧系统 -->
+                    <ornament-layer :effects="effects"></ornament-layer>
+
                     <div class="section-block">
                         <div class="header">
                             <h1>{{ char.name || '角色名字' }}</h1>
@@ -502,8 +751,12 @@
                     </div>
                 </div>
 
+                <!-- 页面 2：扩展信息 (能力/图集) -->
                 <div class="page-block" v-if="(skills && skills.length > 0) || (gallery && gallery.length > 0)">
                     <div class="texture-overlay" v-if="effects.texture" :style="{ backgroundImage: 'url(' + noiseBg + ')' }"></div>
+                    
+                    <!-- 挂载装帧系统 -->
+                    <ornament-layer :effects="effects"></ornament-layer>
 
                     <div class="section-block" v-show="skills && skills.length > 0">
                         <div class="header"><h2>能力 / SKILLS</h2></div>
@@ -540,7 +793,6 @@
 </div>
 
 <script>
-    // 星图粒子特效系统
     window._particleAccentHex = '#000000';
 
     function initParticles() {
@@ -668,12 +920,11 @@
         return canvas.toDataURL('image/png');
     }
 
-    const { createApp } = Vue;
-
-    createApp({
+    const app = Vue.createApp({
         data() {
             return {
                 isPreview: false,
+                editorScrollY: 0, 
                 activeTab: 'guofeng', 
                 importText: '', 
                 noiseBg: generateNoiseTexture(),
@@ -684,9 +935,13 @@
 
                 effects: {
                     gradient: false,
-                    glass: false,
                     texture: false,
-                    trpg: false 
+                    trpg: false,
+                    ornament: 'none', 
+                    customOrnamentUrl: '',
+                    customOrnamentSize: 80,
+                    customOrnamentOpacity: 25,
+                    styleMode: 'none' 
                 },
 
                 presetsGuofeng:[
@@ -773,14 +1028,12 @@
                 
                 let text = this.importText;
                 
-                // 1. 容错词汇替换与无用字符过滤
                 text = text.replace(/模板姓名/g, '姓名');
                 text = text.replace(/携带的物品/g, '携带物品');
                 text = text.replace(/喜好\/喜欢/g, '喜好');
                 text = text.replace(/普攻伤害/g, '普攻');
-                text = text.replace(/^\s*T\s*$/gm, ''); // 移除群模板排版中孤立的T
+                text = text.replace(/^\s*T\s*$/gm, ''); 
                 
-                // 2. 将可能的同行属性强制拆分到新行，并统一使用英文冒号
                 const keywords = "姓名|性别|种族|年龄|身高|体重|职业|性格|喜好|喜欢|厌恶|外貌|背景|携带物品|武器|普攻|能力|技能|属性|生命|理智|智慧|魅力|力量|敏捷|速度|幸运|搏斗|话术|技巧|感知";
                 const splitRegex = new RegExp(`(${keywords})\\s*(?:[:：]|\\/:)`, 'g');
                 text = text.replace(splitRegex, '\n$1:');
@@ -803,7 +1056,7 @@
                 const lineRegex = new RegExp(`^\\s*(${keywords})\\s*[:：]\\s*(.*)$`);
 
                 for (let line of lines) {
-                    if (!line.trim()) continue; // 跳过空行
+                    if (!line.trim()) continue; 
                     
                     const match = line.match(lineRegex);
                     if (match) {
@@ -813,7 +1066,6 @@
                         currentKey = mappedKey;
 
                         if (mappedKey && mappedKey !== 'ignore') {
-                            // 清除括号里面的说明文字（比如：100(不能被点数增加) -> 100）
                             if (mappedKey.startsWith('attr_') || mappedKey.startsWith('trpg_')) {
                                 value = value.replace(/\(.*?\)|（.*?）/g, '').trim();
                             }
@@ -827,7 +1079,7 @@
                                 const attr = this.trpgAttrs.find(a => a.label === attrName);
                                 if (attr) { 
                                     attr.val = value;
-                                    this.effects.trpg = true; // 自动开启跑团扩展面板
+                                    this.effects.trpg = true; 
                                 }
                             } else if (mappedKey === 'story') {
                                 this.story = value;
@@ -838,7 +1090,6 @@
                             }
                         }
                     } else {
-                        // 未匹配到关键字的行，归属于上一字段内容
                         if (currentKey && currentKey !== 'ignore') {
                             if (currentKey === 'story') {
                                 this.story += (this.story ? '\n' : '') + line.trim();
@@ -897,7 +1148,28 @@
                         if(parsed.story !== undefined) this.story = parsed.story;
                         if(parsed.skills) this.skills = parsed.skills;
                         if(parsed.gallery) this.gallery = parsed.gallery;
-                        if(parsed.effects) this.effects = parsed.effects;
+                        if(parsed.effects) {
+                            this.effects.gradient = parsed.effects.gradient || false;
+                            this.effects.texture = parsed.effects.texture || false;
+                            this.effects.trpg = parsed.effects.trpg || false;
+                            
+                            if (typeof parsed.effects.ornament === 'boolean') {
+                                this.effects.ornament = parsed.effects.ornament ? 'elegant' : 'none';
+                            } else {
+                                this.effects.ornament = parsed.effects.ornament || 'none';
+                            }
+
+                            if (parsed.effects.styleMode) {
+                                if (parsed.effects.styleMode === 'tech') this.effects.styleMode = 'metal';
+                                else this.effects.styleMode = parsed.effects.styleMode;
+                            } else {
+                                this.effects.styleMode = 'none';
+                            }
+                            
+                            this.effects.customOrnamentUrl = parsed.effects.customOrnamentUrl || '';
+                            this.effects.customOrnamentSize = parsed.effects.customOrnamentSize !== undefined ? parsed.effects.customOrnamentSize : 80;
+                            this.effects.customOrnamentOpacity = parsed.effects.customOrnamentOpacity !== undefined ? parsed.effects.customOrnamentOpacity : 25;
+                        }
                     } catch (e) { }
                 }
             },
@@ -908,8 +1180,16 @@
                 }
             },
             togglePreview() {
-                this.isPreview = !this.isPreview;
-                if(this.isPreview) window.scrollTo(0, 0);
+                if (!this.isPreview) {
+                    this.editorScrollY = window.scrollY || document.documentElement.scrollTop;
+                    this.isPreview = true;
+                    window.scrollTo(0, 0);
+                } else {
+                    this.isPreview = false;
+                    this.$nextTick(() => {
+                        window.scrollTo(0, this.editorScrollY);
+                    });
+                }
             },
             parseRichText(text) {
                 if (typeof text !== 'string' || !text) return '';
@@ -951,6 +1231,14 @@
                     });
                 }
             },
+            handleCustomOrnamentUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.processImage(file, (dataUrl) => {
+                        this.effects.customOrnamentUrl = dataUrl;
+                    });
+                }
+            },
             addSkill() {
                 this.skills.push({ title: '', tag: '', desc: '', color: this.wbAccent });
             },
@@ -965,6 +1253,7 @@
             },
             async exportImage() {
                 if (!this.isPreview) {
+                    this.editorScrollY = window.scrollY || document.documentElement.scrollTop;
                     this.isPreview = true;
                     await this.$nextTick(); 
                     await new Promise(r => setTimeout(r, 600)); 
@@ -992,7 +1281,15 @@
                 });
             }
         }
-    }).mount('#app');
+    });
+    
+    // 注册装帧系统组件
+    app.component('ornament-layer', {
+        template: '#ornament-template',
+        props: ['effects']
+    });
+
+    app.mount('#app');
 </script>
 </body>
 </html>
