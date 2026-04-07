@@ -290,7 +290,7 @@
 
 <canvas id="particle-canvas"></canvas>
 
-<!-- 独立的高级装帧渲染系统 -->
+<!-- 独立的高级装帧渲染系统 (支持自定义与星芒魔法阵动态计算) -->
 <script type="text/x-template" id="ornament-template">
     <div v-if="effects.ornament !== 'none'">
         
@@ -303,6 +303,21 @@
 
         <!-- 预设水印底图 -->
         <div class="watermark-bg" v-if="effects.ornament !== 'custom'">
+            <!-- 星芒阵 (真正的多重连线魔法阵) -->
+            <svg v-if="effects.ornament === 'star'" viewBox="0 0 100 100">
+                <!-- 外环轨 -->
+                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 4"/>
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
+                
+                <!-- 动态复杂交叉⭐️芒连线与多边形 -->
+                <path :d="getStarLines(effects.starPointCount, 50, 50, 45)" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.9"/>
+                
+                <!-- 根据交叉点自动推算的完美相切内接圆 -->
+                <circle cx="50" cy="50" :r="getInnerCircleRadius(effects.starPointCount, 45)" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                <circle cx="50" cy="50" :r="getInnerCircleRadius(effects.starPointCount, 45) * 0.7" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
+                
+
+            
             <!-- 典雅星盘 -->
             <svg v-if="effects.ornament === 'elegant'" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -381,6 +396,13 @@
         <!-- 四周边角花纹 (自定义模式无角标) -->
         <div class="ornament-corners" v-if="effects.ornament !== 'custom'">
             <div class="corner-piece" v-for="pos in ['top-left', 'top-right', 'bottom-left', 'bottom-right']" :class="pos" :key="pos">
+                <!-- 星芒阵角标 (动态计算 1/4 魔法阵) -->
+                <svg v-if="effects.ornament === 'star'" viewBox="0 0 100 100">
+                    <circle cx="0" cy="0" r="85" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 5"/>
+                    <circle cx="0" cy="0" r="75" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path :d="getStarLines(effects.starPointCount, 0, 0, 75)" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                    <circle cx="0" cy="0" :r="getInnerCircleRadius(effects.starPointCount, 75)" fill="none" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+                </svg>
                 <!-- 典雅边框 -->
                 <svg v-if="effects.ornament === 'elegant'" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6">
                     <path d="M0 0 L100 0 M0 0 L0 100 M20 20 L100 20 M20 20 L20 100"/>
@@ -402,7 +424,7 @@
                     <path d="M0 15 Q 40 15, 85 60"/>
                     <path d="M15 0 Q 15 40, 60 85"/>
                 </svg>
-                <!-- 藤蔓繁花 (恢复初版设计) -->
+                <!-- 藤蔓繁花 -->
                 <svg v-if="effects.ornament === 'floral'" viewBox="0 0 100 100" fill="currentColor">
                     <path d="M0 0 Q 50 0, 100 100" fill="none" stroke="currentColor" stroke-width="6"/>
                     <path d="M25 5 C 45 5, 45 25, 25 25 C 5 25, 5 5, 25 5" opacity="0.8"/>
@@ -423,7 +445,7 @@
                     <circle cx="70" cy="30" r="3" fill="currentColor"/>
                     <path d="M 0 0 L 25 0 L 25 25 L 0 25 Z" fill="currentColor" opacity="0.6"/>
                 </svg>
-                <!-- 蜘蛛网角标 (已去除悬挂蜘蛛) -->
+                <!-- 蜘蛛网角标 (已去蜘蛛) -->
                 <svg v-if="effects.ornament === 'spider'" viewBox="0 0 100 100">
                     <path d="M0 0 L100 0 M0 0 L0 100 M0 0 L70 70 M0 0 L85 35 M0 0 L35 85" stroke="currentColor" stroke-width="2.5"/>
                     <path d="M0 25 Q 15 25, 30 15 Q 35 0, 35 0" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -474,12 +496,12 @@
                 
                 <div class="color-workbench">
                     <div class="workbench-tip">
-                        操作提示：点击预设可一键换色。点击层级间的“⇅”可互换颜色。背景动态星图会随层三变色。
+                        操作提示：点击预设可一键换色。点击层级间的“⇅”可互换颜色。背景图会随层三变色。
                     </div>
 
                     <div class="wb-stack">
                         <div class="wb-layer wb-layer-3" :style="{ backgroundColor: wbAccent }">
-                            <div class="wb-title">层三：局部装饰 (星图/技能/外貌)</div>
+                            <div class="wb-title">层三：局部装饰 (背景图/技能/外貌)</div>
                             <div class="wb-controls">
                                 <input type="text" v-model="wbAccent" class="wb-input-hex" @change="syncTheme" maxlength="7">
                                 <input type="color" v-model="wbAccent" class="color-mini" @input="syncTheme">
@@ -524,6 +546,7 @@
                         <span style="font-size: 14px; font-weight: bold; color: #f4c227;">全局主题装帧 (单选，超清大图水印与角花)：</span><br>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px;">
                             <label style="display:flex; align-items:center;"><input type="radio" value="none" v-model="effects.ornament"> 无装帧</label>
+                            <label style="display:flex; align-items:center; color: #ffb74d;"><input type="radio" value="star" v-model="effects.ornament"> 星芒阵</label>
                             <label style="display:flex; align-items:center;"><input type="radio" value="elegant" v-model="effects.ornament"> 典雅星盘</label>
                             <label style="display:flex; align-items:center;"><input type="radio" value="kaleido" v-model="effects.ornament"> 几何万花筒</label>
                             <label style="display:flex; align-items:center;"><input type="radio" value="starry" v-model="effects.ornament"> 占星幻夜</label>
@@ -535,6 +558,13 @@
                             <label style="display:flex; align-items:center; color: #88c0d0; font-weight: bold;"><input type="radio" value="custom" v-model="effects.ornament"> 自定义图案</label>
                         </div>
                         
+                        <!-- 动态星芒专属设置界面 -->
+                        <div v-if="effects.ornament === 'star'" class="item-edit-box" style="margin-top: 15px; background: rgba(0,0,0,0.3);">
+                            <div class="item-head"><b style="color:#f4c227;">动态星芒阵设置</b></div>
+                            <label style="color: #fff;">这里填星芒数量，五芒星就填五：</label>
+                            <input type="number" v-model="effects.starPointCount" min="3" max="50" style="margin-bottom: 5px;" placeholder="如: 5">
+                        </div>
+
                         <!-- 自定义水印专属设置界面 -->
                         <div v-if="effects.ornament === 'custom'" class="item-edit-box" style="margin-top: 15px; background: rgba(0,0,0,0.3);">
                             <div class="item-head"><b style="color:#f4c227;">自定义中心装帧设置</b></div>
@@ -938,6 +968,7 @@
                     texture: false,
                     trpg: false,
                     ornament: 'none', 
+                    starPointCount: 5,
                     customOrnamentUrl: '',
                     customOrnamentSize: 80,
                     customOrnamentOpacity: 25,
@@ -1166,6 +1197,7 @@
                                 this.effects.styleMode = 'none';
                             }
                             
+                            this.effects.starPointCount = parsed.effects.starPointCount !== undefined ? parsed.effects.starPointCount : 5;
                             this.effects.customOrnamentUrl = parsed.effects.customOrnamentUrl || '';
                             this.effects.customOrnamentSize = parsed.effects.customOrnamentSize !== undefined ? parsed.effects.customOrnamentSize : 80;
                             this.effects.customOrnamentOpacity = parsed.effects.customOrnamentOpacity !== undefined ? parsed.effects.customOrnamentOpacity : 25;
@@ -1286,7 +1318,58 @@
     // 注册装帧系统组件
     app.component('ornament-layer', {
         template: '#ornament-template',
-        props: ['effects']
+        props: ['effects'],
+        methods: {
+            // 根据多边形跨度计算最深相切圆的比例
+            getInnerCircleRadius(n, R) {
+                n = parseInt(n) || 5;
+                if (n < 3) n = 3;
+                let k = Math.floor((n - 1) / 2);
+                if (k < 2) return R * 0.5; // 如果只是三边形/四边形，默认内圆占0.5
+                return R * Math.cos(Math.PI * k / n);
+            },
+            // 全自动数学构建全节点星芒连线 (包含外接多边形、最深星芒连线，以及多层复合线)
+            getStarLines(n, cx, cy, R) {
+                n = parseInt(n) || 5;
+                if (n < 3) n = 3;
+                let pts = [];
+                // 计算所有顶点坐标 (顺时针偏转让上方居中)
+                for (let i = 0; i < n; i++) {
+                    let a = -Math.PI / 2 + (Math.PI * 2 / n) * i;
+                    pts.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) });
+                }
+                let d = "";
+                
+                // 1. 绘制外接正N边形
+                for (let i = 0; i < n; i++) {
+                    d += `M ${pts[i].x} ${pts[i].y} L ${pts[(i+1)%n].x} ${pts[(i+1)%n].y} `;
+                }
+                
+                // 特殊处理 4芒星：十字交叉对角线
+                if (n === 4) {
+                    d += `M ${pts[0].x} ${pts[0].y} L ${pts[2].x} ${pts[2].y} `;
+                    d += `M ${pts[1].x} ${pts[1].y} L ${pts[3].x} ${pts[3].y} `;
+                }
+
+                // 2. 绘制主星芒连线 (根据数量自动求跨度)
+                let k = Math.floor((n - 1) / 2);
+                if (k >= 2) {
+                    for (let i = 0; i < n; i++) {
+                        d += `M ${pts[i].x} ${pts[i].y} L ${pts[(i+k)%n].x} ${pts[(i+k)%n].y} `;
+                    }
+                }
+                
+                // 3. 如果星点数很多(>=7)，再加画一层复合内连线，让魔法阵显得更加精密复杂
+                if (n >= 7 && (k - 1) >= 2) {
+                    let k2 = k - 1;
+                    for (let i = 0; i < n; i++) {
+                        d += `M ${pts[i].x} ${pts[i].y} L ${pts[(i+k2)%n].x} ${pts[(i+k2)%n].y} `;
+                    }
+                }
+                
+                return d;
+            }
+        }
     });
 
     app.mount('#app');
