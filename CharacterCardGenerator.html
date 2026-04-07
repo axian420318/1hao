@@ -309,14 +309,16 @@
                 <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 4"/>
                 <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
                 
-                <!-- 动态复杂交叉⭐️芒连线与多边形 -->
+                <!-- 动态复杂交叉星芒连线与多边形 -->
                 <path :d="getStarLines(effects.starPointCount, 50, 50, 45)" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.9"/>
                 
                 <!-- 根据交叉点自动推算的完美相切内接圆 -->
                 <circle cx="50" cy="50" :r="getInnerCircleRadius(effects.starPointCount, 45)" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
                 <circle cx="50" cy="50" :r="getInnerCircleRadius(effects.starPointCount, 45) * 0.7" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/>
                 
-
+                <!-- 阵眼 -->
+                <circle cx="50" cy="50" r="2.5" fill="currentColor"/>
+            </svg>
             
             <!-- 典雅星盘 -->
             <svg v-if="effects.ornament === 'elegant'" viewBox="0 0 100 100">
@@ -496,12 +498,12 @@
                 
                 <div class="color-workbench">
                     <div class="workbench-tip">
-                        操作提示：点击预设可一键换色。点击层级间的“⇅”可互换颜色。背景图会随层三变色。
+                        操作提示：点击预设可一键换色。点击层级间的“⇅”可互换颜色。背景动态星图会随层三变色。
                     </div>
 
                     <div class="wb-stack">
                         <div class="wb-layer wb-layer-3" :style="{ backgroundColor: wbAccent }">
-                            <div class="wb-title">层三：局部装饰 (背景图/技能/外貌)</div>
+                            <div class="wb-title">层三：局部装饰 (星图/技能/外貌)</div>
                             <div class="wb-controls">
                                 <input type="text" v-model="wbAccent" class="wb-input-hex" @change="syncTheme" maxlength="7">
                                 <input type="color" v-model="wbAccent" class="color-mini" @input="syncTheme">
