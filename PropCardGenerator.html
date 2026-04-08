@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=0.5, maximum-scale=5.0">
-    <title>角色卡生成器</title>
+    <title>道具卡生成器</title>
     <link rel="icon" href="https://i.imgs.ovh/2026/04/06/ZQIHAM.th.jpeg" type="image/jpeg">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
@@ -68,8 +68,6 @@
         input[type="range"] { padding: 0; background: transparent; border: none; cursor: pointer; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        @media (max-width: 600px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
 
         button { padding: 10px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; border: none; transition: 0.2s; color: #fff; }
         .btn-default { background: var(--border-color); }
@@ -199,7 +197,13 @@
         .header { border-bottom: 6px solid var(--theme); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
         .header h1 { font-size: 55px; margin: 0; font-weight: 900; letter-spacing: 5px; color: var(--theme); text-shadow: 2px 2px 0px rgba(255,255,255,0.8); }
         .header .race { font-size: 20px; font-weight: bold; background: var(--theme); color: #fff; padding: 4px 12px; }
-        .header h2 { font-size: 32px; margin: 0; letter-spacing: 2px; color: var(--theme); }
+        
+        /* 道具卡特有的引言设计 */
+        .flavor-text {
+            font-style: italic; color: #666; margin-top: 15px; padding-left: 15px; 
+            border-left: 4px solid var(--theme); font-size: 17px; line-height: 1.6;
+        }
+        .bg-gradient .flavor-text { color: #aaa; }
 
         /* ----- 排版系统 ----- */
         .info-layout { margin-top: 20px; gap: 40px; }
@@ -224,10 +228,6 @@
         .data-table td { padding: 16px 0; border-bottom: 1px solid var(--theme); }
         .data-table td:first-child { font-weight: bold; width: 100px; color: var(--theme); opacity: 0.9; }
 
-        .combined-attr-grid { display: grid; gap: 12px; margin-top: 30px; position: relative; z-index: 2; }
-        .combined-attr-grid.twelve-items { grid-template-columns: repeat(6, 1fr); }
-        .combined-attr-grid.four-items { grid-template-columns: repeat(4, 1fr); }
-        
         .content-box { border: 2px solid var(--theme); background: rgba(255,255,255,0.85); box-shadow: 5px 5px 0px var(--theme); }
         
         .effect-glass .content-box { 
@@ -250,16 +250,7 @@
             background: var(--theme); color: #fff; border: 1px solid #000; 
             box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2); font-family: monospace, sans-serif; text-transform: uppercase;
         }
-        .effect-metal .attr-card {
-            border: 1px solid var(--theme); border-radius: 2px;
-            background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(0,0,0,0.04) 4px, rgba(0,0,0,0.04) 8px);
-            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);
-        }
         .effect-metal .portrait-container { border: 3px solid var(--theme); border-radius: 2px; position: relative; }
-
-        .attr-card { padding: 10px; text-align: center; }
-        .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
-        .attr-card .value { font-size: 26px; font-weight: 900; color: var(--theme); }
 
         .story-section { padding: 30px; font-size: 18px; line-height: 2.2; text-align: justify; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
         
@@ -331,29 +322,22 @@
         </div>
         <div class="watermark-bg" v-if="effects.ornament !== 'custom'">
             
-            <!-- 生化危机装帧 · 样式一 (纯正符号) -->
             <svg v-if="effects.ornament === 'biohazard'" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
                 <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="2 8" opacity="0.4"/>
                 <text x="50" y="54" font-family="'Segoe UI', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif" font-size="65" text-anchor="middle" dominant-baseline="central" fill="currentColor">☣︎</text>
             </svg>
             
-            <!-- 生化危机装帧 · 样式二 (纯矢量保护伞，彻底解决跨域渲染报错) -->
             <svg v-if="effects.ornament === 'umbrella'" viewBox="0 0 100 100">
-                <!-- 科技感外环 -->
                 <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/>
                 <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="5 15" opacity="0.4"/>
                 <circle cx="50" cy="50" r="39" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/>
-                
-                <!-- 保护伞纯代码矢量图 -->
                 <g opacity="0.6">
                     <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="1.5"/>
-                    <!-- 4个扇形交错构成标志 -->
                     <path d="M 50 50 L 38.5 22.3 A 30 30 0 0 1 61.5 22.3 Z" fill="currentColor"/>
                     <path d="M 50 50 L 38.5 22.3 A 30 30 0 0 1 61.5 22.3 Z" fill="currentColor" transform="rotate(90 50 50)"/>
                     <path d="M 50 50 L 38.5 22.3 A 30 30 0 0 1 61.5 22.3 Z" fill="currentColor" transform="rotate(180 50 50)"/>
                     <path d="M 50 50 L 38.5 22.3 A 30 30 0 0 1 61.5 22.3 Z" fill="currentColor" transform="rotate(270 50 50)"/>
-                    <!-- 伞心内环 -->
                     <circle cx="50" cy="50" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
                     <circle cx="50" cy="50" r="1.5" fill="currentColor"/>
                 </g>
@@ -446,13 +430,9 @@
                 
                 <!-- 生化危机角标 · 样式二 (保护伞矢量Logo) -->
                 <svg v-if="effects.ornament === 'umbrella'" viewBox="0 0 100 100">
-                    <!-- 警示条纹边界 -->
                     <path d="M 0 50 L 50 0 M 0 70 L 70 0 M 0 90 L 90 0" stroke="currentColor" stroke-width="3" opacity="0.2"/>
-                    <!-- 科技感同心圆角标 -->
                     <circle cx="0" cy="0" r="75" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
                     <circle cx="0" cy="0" r="50" fill="none" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-                    
-                    <!-- 镶嵌于角标的矢量伞图 -->
                     <g transform="translate(-20, -20) scale(0.8)" opacity="0.7">
                         <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2" />
                         <path d="M 50 50 L 38.5 22.3 A 30 30 0 0 1 61.5 22.3 Z" fill="currentColor" />
@@ -516,7 +496,7 @@
 
 <div id="app">
     <div class="navbar">
-        <h2>角色卡生成器</h2>
+        <h2>道具卡生成器</h2>
         <div class="nav-actions">
             <button type="button" class="btn-danger" @click="resetData">清空内容</button>
             <button type="button" class="btn-blue" @click="togglePreview">
@@ -554,9 +534,10 @@
                     <h3>智能文本识别导入</h3>
                 </div>
                 <div class="syntax-hint" style="margin-bottom: 10px;">
-                    将群内的人设模板粘贴在此处，点击识别即可自动填入。<br>
+                    将设定文本粘贴在此处，点击识别即可自动填入。<br>
+                    <strong>目前支持识别的格式语：</strong> 名称、介绍、效果
                 </div>
-                <textarea v-model="importText" placeholder="在此粘贴模板文本..." style="min-height: 120px;"></textarea>
+                <textarea v-model="importText" placeholder="在此粘贴设定文本..." style="min-height: 120px;"></textarea>
                 <button type="button" class="btn-primary" @click="parseTemplate" style="width: 100%; margin-top: 10px;">识别并导入信息</button>
             </div>
             
@@ -572,7 +553,7 @@
 
                     <div class="wb-stack">
                         <div class="wb-layer wb-layer-3" :style="{ backgroundColor: wbAccent }">
-                            <div class="wb-title">层三：局部装饰 (星图/技能/外貌)</div>
+                            <div class="wb-title">层三：局部装饰 (星图/效果/高亮)</div>
                             <div class="wb-controls">
                                 <input type="text" v-model="wbAccent" class="wb-input-hex" @change="syncTheme" maxlength="7">
                                 <input type="color" v-model="wbAccent" class="color-mini" @input="syncTheme">
@@ -582,7 +563,7 @@
                             <button class="swap-btn" @click="swapColors('wbAccent', 'wbPrimary')" title="互换图层颜色">⇅</button>
                         </div>
                         <div class="wb-layer wb-layer-2" :style="{ backgroundColor: wbPrimary }">
-                            <div class="wb-title">层二：主干边框 (头像框/标题)</div>
+                            <div class="wb-title">层二：主干边框 (原画框/标题)</div>
                             <div class="wb-controls">
                                 <input type="text" v-model="wbPrimary" class="wb-input-hex" @change="syncTheme" maxlength="7">
                                 <input type="color" v-model="wbPrimary" class="color-mini" @input="syncTheme">
@@ -604,11 +585,11 @@
                 <div class="effect-toggles">
                     
                     <div style="width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px;">
-                        <span style="font-size: 14px; font-weight: bold; color: #fff;">立绘与信息排版 (单选)：</span><br>
+                        <span style="font-size: 14px; font-weight: bold; color: #fff;">原画与信息排版 (单选)：</span><br>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 10px;">
-                            <label style="display:flex; align-items:center;"><input type="radio" value="left" v-model="effects.layoutMode"> 左立绘 右信息 (默认)</label>
-                            <label style="display:flex; align-items:center;"><input type="radio" value="right" v-model="effects.layoutMode"> 左信息 右立绘</label>
-                            <label style="display:flex; align-items:center;"><input type="radio" value="top" v-model="effects.layoutMode"> 上宽幅立绘 下信息</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="left" v-model="effects.layoutMode"> 左原画 右信息 (默认)</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="right" v-model="effects.layoutMode"> 左信息 右原画</label>
+                            <label style="display:flex; align-items:center;"><input type="radio" value="top" v-model="effects.layoutMode"> 上横图 下信息</label>
                             <label style="display:flex; align-items:center;"><input type="radio" value="split" v-model="effects.layoutMode"> 均衡双栏等分</label>
                         </div>
                     </div>
@@ -668,7 +649,6 @@
                         <span style="font-size: 14px; font-weight: bold; color: #fff;">基础特效开关：</span><br>
                         <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="checkbox" v-model="effects.gradient"> 开启渐变色背景</label>
                         <label style="display:inline-flex; margin-right: 15px; margin-top: 10px;"><input type="checkbox" v-model="effects.texture"> 覆盖复古纸张纹理</label>
-                        <label style="display:inline-flex; margin-right: 15px; margin-top: 10px; color: #4caf50; font-weight: bold;"><input type="checkbox" v-model="effects.trpg"> 开启跑团卡扩展属性</label>
                     </div>
                 </div>
 
@@ -694,7 +674,7 @@
 
             <div class="form-group">
                 <div class="form-header">
-                    <h3>主立绘上传</h3>
+                    <h3>道具图标 / 原画上传</h3>
                 </div>
                 <input type="file" accept="image/*" @change="handleMainImageUpload">
             </div>
@@ -745,56 +725,28 @@
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>身份信息</h3></div>
+                <div class="form-header"><h3>道具基本信息</h3></div>
                 <div class="grid-2">
-                    <div><label>名字</label><input type="text" v-model="char.name"></div>
-                    <div><label>英文名</label><input type="text" v-model="char.enName"></div>
-                    <div><label>种族</label><input type="text" v-model="char.race"></div>
-                    <div><label>性别</label><input type="text" v-model="char.gender"></div>
-                    <div><label>年龄</label><input type="text" v-model="char.age"></div>
-                    <div><label>身高</label><input type="text" v-model="char.height"></div>
-                    <div><label>体重</label><input type="text" v-model="char.weight"></div>
-                    <div><label>{{ effects.trpg ? '携带物品' : '武器' }}</label><input type="text" v-model="char.weapon"></div>
-                    <div v-if="effects.trpg"><label>职业</label><input type="text" v-model="char.profession"></div>
-                    <div><label>普攻伤害</label><input type="text" v-model="char.atk"></div>
-                    <div><label>性格</label><input type="text" v-model="char.personality"></div>
-                    <div><label>喜欢</label><input type="text" v-model="char.likes"></div>
-                    <div><label>厌恶</label><input type="text" v-model="char.dislikes"></div>
+                    <div><label>道具名称</label><input type="text" v-model="item.name"></div>
+                    <div><label>英文名 (不填则不显示)</label><input type="text" v-model="item.enName"></div>
+                    <div><label>道具类型</label><input type="text" v-model="item.type" placeholder="如: 武器 / 消耗品 / 饰品"></div>
+                    <div><label>稀有度</label><input type="text" v-model="item.rarity" placeholder="如: SSR / 传说 / 史诗"></div>
+                    <div><label>价值 / 价格</label><input type="text" v-model="item.price" placeholder="如: 500 金币"></div>
+                    <div><label>使用次数 / 限制</label><input type="text" v-model="item.durability" placeholder="如: 永久 / 1次"></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <label>传说引言 / 传闻 (Flavor Text)</label>
+                    <textarea v-model="item.quote" placeholder="写一句话，会在名称下方以斜体展示" style="min-height: 60px;"></textarea>
                 </div>
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>核心四维属性</h3></div>
-                <div class="grid-4">
-                    <div v-for="(attr, index) in attrs" :key="index">
-                        <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 5px;">
-                        <input type="text" v-model="attr.val" placeholder="数值">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group" v-if="effects.trpg">
-                <div class="form-header"><h3 style="color:#88c0d0;">跑团卡扩展属性</h3></div>
-                <div class="grid-4">
-                    <div v-for="(attr, index) in trpgAttrs" :key="index">
-                        <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 5px;">
-                        <input type="text" v-model="attr.val" placeholder="数值">
-                    </div>
-                </div>
+                <div class="form-header"><h3>道具背景与介绍</h3></div>
+                <textarea v-model="description" placeholder="在此输入道具的来历、背景故事或外观描述，回车换行会自动分段..."></textarea>
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>外貌特征</h3></div>
-                <textarea v-model="char.appearance" placeholder="在此输入角色的外貌特征..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <div class="form-header"><h3>背景设定</h3></div>
-                <textarea v-model="story" placeholder="在此输入角色的背景，回车换行会自动分段..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <div class="form-header"><h3>能力/技能</h3></div>
+                <div class="form-header"><h3>道具效果 / 特殊能力</h3></div>
                 <div class="syntax-hint">
                     排版语法说明：<br>
                     • <code>[名词]</code> 生成标准标签 <br>
@@ -804,7 +756,7 @@
                 <br>
                 <div v-for="(skill, index) in skills" :key="index" class="item-edit-box">
                     <div class="item-head">
-                        <b style="color:#fff;">技能 {{ index + 1 }}</b>
+                        <b style="color:#fff;">效果 {{ index + 1 }}</b>
                         <div style="display:flex; gap:8px; align-items:center;">
                             <span style="font-size:12px; color:#aaa;">专属颜色:</span>
                             <input type="text" v-model="skill.color" class="skill-input-hex" maxlength="7">
@@ -813,17 +765,17 @@
                         </div>
                     </div>
                     <div class="grid-2">
-                        <div><label>技能名</label><input type="text" v-model="skill.title" placeholder="如: ① 被动【蜕皮】"></div>
-                        <div><label>额外描述</label><input type="text" v-model="skill.tag" placeholder="如: LV.MAX"></div>
+                        <div><label>效果名</label><input type="text" v-model="skill.title" placeholder="效果名"></div>
+                        <div><label>额外描述</label><input type="text" v-model="skill.tag" placeholder="额外描述"></div>
                     </div>
-                    <label>技能描述</label>
+                    <label>效果说明</label>
                     <textarea v-model="skill.desc" placeholder="支持使用[] 、 {} 以及 【】 快捷语法"></textarea>
                 </div>
-                <button type="button" class="btn-default" @click="addSkill" style="width: 100%; margin-top: 10px;">+ 添加新技能</button>
+                <button type="button" class="btn-default" @click="addSkill" style="width: 100%; margin-top: 10px;">+ 添加新效果</button>
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>附加图集 (差分/武器/细节)</h3></div>
+                <div class="form-header"><h3>附加图集 (部件/细节特写)</h3></div>
                 <div v-for="(img, index) in gallery" :key="index" class="item-edit-box">
                     <div class="item-head">
                         <b style="color:#fff;">图片 {{ index + 1 }}</b>
@@ -865,69 +817,56 @@
 
                     <div class="section-block">
                         <div class="header">
-                            <h1>{{ char.name || '角色名字' }}</h1>
-                            <!-- 英文名空置不显示的逻辑 -->
+                            <h1>{{ item.name || '道具名称' }}</h1>
                             <div class="race">
-                                <span v-if="char.enName && char.enName.trim()">{{ char.enName }} / </span>
-                                <span>{{ char.gender || '性别' }}</span>
+                                <!-- 如果英文名为空，则不显示英文名及斜杠 -->
+                                <span v-if="item.enName && item.enName.trim()">{{ item.enName }} / </span>
+                                <span>{{ item.type || '未知类型' }}</span>
                             </div>
+                        </div>
+                        
+                        <div class="flavor-text" v-if="item.quote && item.quote.trim()">
+                            "{{ item.quote }}"
                         </div>
 
                         <!-- 动态绑定排版类名 -->
                         <div :class="['info-layout', 'layout-' + (effects.layoutMode || 'left')]">
                             <div class="portrait-area">
                                 <div class="portrait-container content-box">
-                                    <img v-if="char.avatar" :src="char.avatar" alt="立绘">
-                                    <span v-else>未上传立绘</span>
+                                    <img v-if="item.avatar" :src="item.avatar" alt="原画">
+                                    <span v-else>未上传道具原画</span>
                                 </div>
                             </div>
 
                             <div class="stats-area">
                                 <table class="data-table">
-                                    <tr><td>种族</td><td>{{ char.race }}</td></tr>
-                                    <tr><td>年龄</td><td>{{ char.age }}</td></tr>
-                                    <tr><td>身高</td><td>{{ char.height }}</td></tr>
-                                    <tr><td>体重</td><td>{{ char.weight }}</td></tr>
-                                    <tr><td>{{ effects.trpg ? '携带物品' : '武器' }}</td><td>{{ char.weapon }}</td></tr>
-                                    <tr v-if="effects.trpg"><td>职业</td><td>{{ char.profession }}</td></tr>
-                                    <tr><td>性格</td><td>{{ char.personality }}</td></tr>
-                                    <tr><td>喜欢</td><td>{{ char.likes }}</td></tr>
-                                    <tr><td>厌恶</td><td>{{ char.dislikes }}</td></tr>
-                                    <tr><td>普攻</td><td><span class="val-tag">{{ char.atk || '?' }}</span></td></tr>
+                                    <tr v-if="item.type"><td>道具类型</td><td>{{ item.type }}</td></tr>
+                                    <tr v-if="item.rarity"><td>稀有度</td><td style="font-weight: bold; color: var(--theme);">{{ item.rarity }}</td></tr>
+                                    <tr v-if="item.price"><td>价值</td><td>{{ item.price }}</td></tr>
+                                    <tr v-if="item.durability"><td>使用限制</td><td>{{ item.durability }}</td></tr>
                                 </table>
                             </div>
                         </div>
 
-                        <div :class="['combined-attr-grid', effects.trpg ? 'twelve-items' : 'four-items']">
-                            <div class="attr-card content-box" v-for="attr in combinedAttrs" :key="attr.label">
-                                <span class="label">{{ attr.label }}</span>
-                                <span class="value">{{ attr.val || '0' }}</span>
-                            </div>
-                        </div>
                     </div>
 
-                    <div class="section-block" v-if="char.appearance && char.appearance.trim()" :style="{ '--theme': storyColor }">
-                        <div class="header"><h2>外貌 / APPEARANCE</h2></div>
-                        <div class="story-section content-box">{{ char.appearance }}</div>
-                    </div>
-
-                    <div class="section-block" v-if="story && story.trim()" :style="{ '--theme': storyColor }">
-                        <div class="header"><h2>背景 / BACKGROUND</h2></div>
-                        <div class="story-section content-box">{{ story }}</div>
+                    <div class="section-block" v-if="description && description.trim()" :style="{ '--theme': storyColor }">
+                        <div class="header"><h2>背景与介绍 / DESCRIPTION</h2></div>
+                        <div class="story-section content-box">{{ description }}</div>
                     </div>
                 </div>
 
-                <!-- 页面 2：扩展信息 (能力/图集) -->
+                <!-- 页面 2：扩展信息 (效果/图集) -->
                 <div class="page-block" v-if="(skills && skills.length > 0) || (gallery && gallery.length > 0)">
                     <div class="texture-overlay" v-if="effects.texture" :style="{ backgroundImage: 'url(' + noiseBg + ')' }"></div>
                     <ornament-layer :effects="effects"></ornament-layer>
 
                     <div class="section-block" v-show="skills && skills.length > 0">
-                        <div class="header"><h2>能力 / SKILLS</h2></div>
+                        <div class="header"><h2>道具效果 / EFFECTS</h2></div>
                         <div class="skill-section">
                             <div class="skill-box content-box" v-for="(skill, index) in skills" :key="index" :style="{ '--theme': skill.color || theme.primary }">
                                 <div class="skill-title">
-                                    <span>{{ skill.title || '未知技能' }}</span>
+                                    <span>{{ skill.title || '未知效果' }}</span>
                                     <span>{{ skill.tag }}</span>
                                 </div>
                                 <div class="skill-desc" v-html="parseRichText(skill.desc)"></div>
@@ -937,7 +876,7 @@
 
                     <div class="section-block" v-show="gallery && gallery.length > 0">
                         <div class="header" :style="{ '--theme': storyColor }">
-                            <h2 :style="{ color: storyColor }">图集 / GALLERY</h2>
+                            <h2 :style="{ color: storyColor }">部件图集 / GALLERY</h2>
                         </div>
                         <div class="gallery-grid">
                             <div class="gallery-item content-box" v-for="(item, index) in gallery" :key="index" :style="{ '--theme': storyColor }">
@@ -1100,7 +1039,6 @@
                 effects: {
                     gradient: false,
                     texture: false,
-                    trpg: false,
                     ornament: 'none', 
                     starPointCount: 5,
                     customOrnamentUrl: '',
@@ -1140,17 +1078,11 @@
 
                 theme: { bg: '#ffffff', primary: '#000000' },
                 storyColor: "#000000",
-                char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', weapon: '', profession: '', atk: '', appearance: '', avatar: '' },
-                attrs:[ { label: '生命', val: '' }, { label: '力量', val: '' }, { label: '速度', val: '' }, { label: '幸运', val: '' } ],
                 
-                trpgAttrs:[
-                    { label: '理智', val: '' }, { label: '智慧', val: '' },
-                    { label: '魅力', val: '' }, { label: '敏捷', val: '' },
-                    { label: '搏斗', val: '' }, { label: '话术', val: '' },
-                    { label: '技巧', val: '' }, { label: '感知', val: '' }
-                ],
+                // 道具卡专属数据结构
+                item: { name: '', enName: '', type: '', rarity: '', price: '', durability: '', quote: '', avatar: '' },
 
-                story: "",
+                description: "",
                 skills:[],
                 gallery:[],
                 
@@ -1236,12 +1168,6 @@
                 g = Math.max(0, Math.min(255, g));
                 b = Math.max(0, Math.min(255, b));
                 return '#' + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
-            },
-            combinedAttrs() {
-                if (this.effects.trpg) {
-                    return [...this.attrs, ...this.trpgAttrs];
-                }
-                return this.attrs;
             }
         },
         created() {
@@ -1249,10 +1175,8 @@
             window._particleAccentHex = this.wbAccent; 
         },
         watch: {
-            char: { handler() { this.saveData(); }, deep: true },
-            attrs: { handler() { this.saveData(); }, deep: true },
-            trpgAttrs: { handler() { this.saveData(); }, deep: true },
-            story: { handler() { this.saveData(); } },
+            item: { handler() { this.saveData(); }, deep: true },
+            description: { handler() { this.saveData(); } },
             skills: { handler() { this.saveData(); }, deep: true },
             gallery: { handler() { this.saveData(); }, deep: true },
             effects: { handler() { this.saveData(); }, deep: true },
@@ -1263,13 +1187,10 @@
                 if (!this.importText.trim()) return;
                 
                 let text = this.importText;
-                text = text.replace(/模板姓名/g, '姓名');
-                text = text.replace(/携带的物品/g, '携带物品');
-                text = text.replace(/喜好\/喜欢/g, '喜好');
-                text = text.replace(/普攻伤害/g, '普攻');
                 text = text.replace(/^\s*T\s*$/gm, ''); 
                 
-                const keywords = "姓名|性别|种族|年龄|身高|体重|职业|性格|喜好|喜欢|厌恶|外貌|背景|携带物品|武器|普攻|能力|技能|属性|生命|理智|智慧|魅力|力量|敏捷|速度|幸运|搏斗|话术|技巧|感知";
+                // 仅识别名称、介绍、效果
+                const keywords = "名称|介绍|效果";
                 const splitRegex = new RegExp(`(${keywords})\\s*(?:[:：]|\\/:)`, 'g');
                 text = text.replace(splitRegex, '\n$1:');
                 
@@ -1277,15 +1198,9 @@
                 let currentKey = null;
 
                 const keyMap = {
-                    '姓名': 'name', '性别': 'gender', '种族': 'race',
-                    '年龄': 'age', '身高': 'height', '体重': 'weight',
-                    '性格': 'personality', '喜好': 'likes', '喜欢': 'likes',
-                    '厌恶': 'dislikes', '外貌': 'appearance', '背景': 'story',
-                    '武器': 'weapon', '携带物品': 'weapon', '职业': 'profession', '普攻': 'atk',
-                    '生命': 'attr_生命', '力量': 'attr_力量', '速度': 'attr_速度', '幸运': 'attr_幸运',
-                    '理智': 'trpg_理智', '智慧': 'trpg_智慧', '魅力': 'trpg_魅力', '敏捷': 'trpg_敏捷',
-                    '搏斗': 'trpg_搏斗', '话术': 'trpg_话术', '技巧': 'trpg_技巧', '感知': 'trpg_感知',
-                    '属性': 'ignore', '能力': 'ignore', '技能': 'ignore' 
+                    '名称': 'name', 
+                    '介绍': 'description', 
+                    '效果': 'skill_desc'
                 };
 
                 const lineRegex = new RegExp(`^\\s*(${keywords})\\s*[:：]\\s*(.*)$`);
@@ -1300,43 +1215,33 @@
                         const mappedKey = keyMap[key];
                         currentKey = mappedKey;
 
-                        if (mappedKey && mappedKey !== 'ignore') {
-                            if (mappedKey.startsWith('attr_') || mappedKey.startsWith('trpg_')) {
-                                value = value.replace(/\(.*?\)|（.*?）/g, '').trim();
-                            }
-
-                            if (mappedKey.startsWith('attr_')) {
-                                const attrName = mappedKey.split('_')[1];
-                                const attr = this.attrs.find(a => a.label === attrName);
-                                if (attr) attr.val = value;
-                            } else if (mappedKey.startsWith('trpg_')) {
-                                const attrName = mappedKey.split('_')[1];
-                                const attr = this.trpgAttrs.find(a => a.label === attrName);
-                                if (attr) { 
-                                    attr.val = value;
-                                    this.effects.trpg = true; 
-                                }
-                            } else if (mappedKey === 'story') {
-                                this.story = value;
-                            } else if (mappedKey === 'appearance') {
-                                this.char.appearance = value;
+                        if (mappedKey === 'description') {
+                            this.description = value;
+                        } else if (mappedKey === 'skill_desc') {
+                            // 如果检测到“效果：”，直接将其存入第一个效果（技能）框中
+                            if (this.skills.length === 0) {
+                                this.skills.push({ title: '默认效果', tag: '', desc: value, color: this.wbAccent });
                             } else {
-                                this.char[mappedKey] = value;
+                                this.skills[0].desc = value;
                             }
+                        } else if (mappedKey === 'name') {
+                            this.item.name = value;
                         }
                     } else {
-                        if (currentKey && currentKey !== 'ignore') {
-                            if (currentKey === 'story') {
-                                this.story += (this.story ? '\n' : '') + line.trim();
-                            } else if (currentKey === 'appearance') {
-                                this.char.appearance += (this.char.appearance ? '\n' : '') + line.trim();
-                            } else if (!currentKey.startsWith('attr_') && !currentKey.startsWith('trpg_')) {
-                                this.char[currentKey] += (this.char[currentKey] ? ' ' : '') + line.trim();
+                        if (currentKey) {
+                            if (currentKey === 'description') {
+                                this.description += (this.description ? '\n' : '') + line.trim();
+                            } else if (currentKey === 'skill_desc') {
+                                if (this.skills.length > 0) {
+                                    this.skills[0].desc += (this.skills[0].desc ? '\n' : '') + line.trim();
+                                }
+                            } else if (currentKey === 'name') {
+                                this.item.name += (this.item.name ? ' ' : '') + line.trim();
                             }
                         }
                     }
                 }
-                alert('文本识别导入完成！\n群内职业说明等解释性文字已被录入输入框，您可以手动删减不需要的部分。');
+                alert('设定文本识别导入完成！');
                 this.importText = ''; 
             },
 
@@ -1363,14 +1268,14 @@
             saveData() {
                 const dataToSave = {
                     wbBg: this.wbBg, wbPrimary: this.wbPrimary, wbAccent: this.wbAccent,
-                    char: this.char, attrs: this.attrs, trpgAttrs: this.trpgAttrs, 
-                    story: this.story, skills: this.skills, gallery: this.gallery, 
+                    item: this.item, description: this.description, 
+                    skills: this.skills, gallery: this.gallery, 
                     effects: this.effects, stickers: this.stickers
                 };
-                try { localStorage.setItem('charCardGeneratorData_ImgVer', JSON.stringify(dataToSave)); } catch (e) { }
+                try { localStorage.setItem('propCardGeneratorData_V1', JSON.stringify(dataToSave)); } catch (e) { }
             },
             loadData() {
-                const saved = localStorage.getItem('charCardGeneratorData_ImgVer');
+                const saved = localStorage.getItem('propCardGeneratorData_V1');
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
@@ -1378,10 +1283,8 @@
                             this.wbBg = parsed.wbBg; this.wbPrimary = parsed.wbPrimary; this.wbAccent = parsed.wbAccent;
                             this.theme.bg = this.wbBg; this.theme.primary = this.wbPrimary; this.storyColor = this.wbAccent;
                         }
-                        if(parsed.char) this.char = parsed.char;
-                        if(parsed.attrs) this.attrs = parsed.attrs;
-                        if(parsed.trpgAttrs) this.trpgAttrs = parsed.trpgAttrs;
-                        if(parsed.story !== undefined) this.story = parsed.story;
+                        if(parsed.item) this.item = parsed.item;
+                        if(parsed.description !== undefined) this.description = parsed.description;
                         if(parsed.skills) this.skills = parsed.skills;
                         if(parsed.gallery) this.gallery = parsed.gallery;
                         
@@ -1395,7 +1298,6 @@
                         if(parsed.effects) {
                             this.effects.gradient = parsed.effects.gradient || false;
                             this.effects.texture = parsed.effects.texture || false;
-                            this.effects.trpg = parsed.effects.trpg || false;
                             this.effects.layoutMode = parsed.effects.layoutMode || 'left';
                             
                             if (typeof parsed.effects.ornament === 'boolean') {
@@ -1421,7 +1323,7 @@
             },
             resetData() {
                 if (confirm("确定清空重置？此操作不可逆！")) {
-                    localStorage.removeItem('charCardGeneratorData_ImgVer');
+                    localStorage.removeItem('propCardGeneratorData_V1');
                     location.reload(); 
                 }
             },
@@ -1472,7 +1374,7 @@
             },
             handleMainImageUpload(event) {
                 const file = event.target.files[0];
-                if (file) { this.processImage(file, (dataUrl) => { this.char.avatar = dataUrl; }); }
+                if (file) { this.processImage(file, (dataUrl) => { this.item.avatar = dataUrl; }); }
             },
             handleGalleryUpload(event, index) {
                 const file = event.target.files[0];
@@ -1587,7 +1489,7 @@
                     logging: false
                 }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = `${this.char.name || '角色'}_角色卡.png`;
+                    link.download = `${this.item.name || '道具'}_道具卡.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                     btnTexts.forEach(btn => btn.innerText = "导出高清长图");
