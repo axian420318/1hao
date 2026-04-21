@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -377,6 +376,13 @@
         .draggable-sticker { position: absolute; cursor: move; user-select: none; border: 2px dashed transparent; box-sizing: border-box; transform-origin: center center; }
         .draggable-sticker.active { border-color: #88c0d0; background: rgba(136,192,208,0.1); }
         .draggable-sticker img { width: 100%; height: auto; display: block; pointer-events: none; }
+        
+        /* ========================================================= */
+        /* 修复导出时长图中间出现暗影断层的 BUG                      */
+        /* ========================================================= */
+        .is-exporting .page-block {
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body>
@@ -1206,7 +1212,7 @@
             addGalleryImage() { this.gallery.push({ url: '', caption: '' }); },
             removeGalleryImage(index) { this.gallery.splice(index, 1); },
             
-            // 安全可靠的长图导出逻辑
+            // 安全可靠的长图导出逻辑 (已修复暗影与色差 BUG)
             async exportImage() {
                 if(this.isExporting) return;
                 this.isExporting = true;
@@ -1220,29 +1226,44 @@
                     }
                     
                     this.activeStickerIndex = -1;
+                    
+                    // 【修复阴影 BUG】临时打上导出标记，去除会引发拼图断层的外部盒阴影
+                    document.body.classList.add('is-exporting');
+                    
                     await this.$nextTick();
                     window.scrollTo(0, 0);
 
-                    // 延迟 200ms 等待 DOM 与 CSS 完全重绘完毕
-                    await new Promise(r => setTimeout(r, 200));
+                    // 延长等待时间，确保 CSS 变量渐变和 WebFonts 完全重绘
+                    await new Promise(r => setTimeout(r, 500));
 
                     const element = document.getElementById('card-content');
                     
                     const canvas = await html2canvas(element, {
                         scale: 2, 
                         useCORS: true,
-                        backgroundColor: this.effects.gradient ? '#ffffff' : this.theme.bg, 
-                        logging: false
+                        allowTaint: false,
+                        // 【修复色差 BUG】设为 null，让 html2canvas 完全读取 DOM 本身的背景色和渐变
+                        backgroundColor: null, 
+                        // 【修复错位 BUG】强制锁定坐标轴，防止因页面滚动导致的截断偏移
+                        scrollX: 0,
+                        scrollY: 0,
+                        windowWidth: element.scrollWidth,
+                        windowHeight: element.scrollHeight
                     });
+
+                    // 截图完成后，移除标记，恢复界面的阴影
+                    document.body.classList.remove('is-exporting');
 
                     const link = document.createElement('a');
                     link.download = `${this.char.name || '角色'}_角色卡.png`;
-                    link.href = canvas.toDataURL('image/png');
+                    link.href = canvas.toDataURL('image/png', 1.0); // 确保最高质量导出
                     link.click();
                     
                 } catch (err) {
                     console.error("生成失败: ", err);
                     alert("生成失败，可能是浏览器内存不足或存在不受支持的缓存图片，请刷新页面后重试。");
+                    // 发生异常时也要确保样式恢复
+                    document.body.classList.remove('is-exporting');
                 } finally {
                     this.isExporting = false;
                 }
