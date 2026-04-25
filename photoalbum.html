@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -7,9 +6,6 @@
     <title>主页</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
     <style>
-        /* ========================================================= */
-        /* 小清新美学设计 (Fresh & Minimalist Style)                 */
-        /* ========================================================= */
         :root {
             --bg-color: #F7F9F9;
             --surface: #FFFFFF;
@@ -24,9 +20,7 @@
             --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.03);
             --shadow-md: 0 10px 30px rgba(130, 194, 189, 0.1);
         }
-
         * { box-sizing: border-box; word-wrap: break-word; }
-
         body {
             margin: 0; padding: 0;
             font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
@@ -34,13 +28,9 @@
             min-height: 100vh; overflow-y: scroll;
             -webkit-font-smoothing: antialiased;
         }
-
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #D1D8D6; border-radius: 3px; }
 
-        /* ========================================================= */
-        /* 顶部导航栏 */
-        /* ========================================================= */
         .navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background: rgba(255, 255, 255, 0.85);
@@ -50,11 +40,10 @@
             z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
         .nav-left { display: flex; align-items: center; gap: 20px; }
-        .nav-left h2 { 
-            margin: 0; font-size: 18px; font-weight: 700; color: var(--accent); 
+        .nav-left h2 {
+            margin: 0; font-size: 18px; font-weight: 700; color: var(--accent);
             cursor: pointer; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;
         }
-        
         .search-box {
             display: flex; align-items: center; background: #F0F4F4;
             border-radius: 980px; padding: 6px 14px; border: 1px solid transparent;
@@ -63,15 +52,13 @@
         .search-box:focus-within { border-color: var(--accent); background: #FFF; box-shadow: 0 0 0 3px rgba(130, 194, 189, 0.15); }
         .search-box input {
             background: transparent; border: none; color: var(--text-primary); outline: none;
-            width: 140px; font-size: 13px; transition: 0.3s;
+            width: 150px; font-size: 13px; transition: 0.3s;
         }
-        .search-box input:focus { width: 180px; }
+        .search-box input:focus { width: 200px; }
         .search-box input::placeholder { color: #AAB7B7; }
-        .search-box button { background: transparent; border: none; padding: 0; cursor: pointer; color: #AAB7B7; font-size: 14px;}
+        .search-box button { background: transparent; border: none; padding: 0; cursor: pointer; color: #AAB7B7; font-size: 14px; }
         .search-box button:hover { color: var(--accent); }
-
         .nav-right { display: flex; align-items: center; gap: 12px; }
-        
         .user-badge {
             display: flex; align-items: center; gap: 8px; cursor: pointer;
             background: #F0F4F4; padding: 4px 12px 4px 4px;
@@ -80,9 +67,6 @@
         .user-badge:hover { background: #E4EBEB; }
         .user-badge span { font-size: 13px; font-weight: 600; color: var(--text-primary); }
 
-        /* ========================================================= */
-        /* 按钮与通用组件 */
-        /* ========================================================= */
         button {
             padding: 8px 18px; border-radius: 980px; font-size: 13px; font-weight: 600;
             border: none; cursor: pointer; transition: all 0.2s ease;
@@ -90,10 +74,8 @@
         .btn-primary { background: var(--accent); color: white; }
         .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(130, 194, 189, 0.4); }
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-        
         .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
         .btn-outline:hover { background: rgba(130, 194, 189, 0.1); }
-        
         .btn-danger { background: #FFF0F0; color: var(--danger); }
         .btn-danger:hover { background: #FFE4E4; }
 
@@ -109,17 +91,15 @@
         }
         .fab-post:hover { transform: scale(1.08) translateY(-4px); box-shadow: 0 12px 28px rgba(130, 194, 189, 0.55); }
 
-        .avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: #EEE; }
+        .avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: #EEE; cursor: pointer; transition: transform 0.2s; }
+        .avatar-sm:hover { transform: scale(1.1); }
         .avatar-lg { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #FFF; box-shadow: var(--shadow-sm); flex-shrink: 0; }
+        .tag-badge { background: #E4EBEB; color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 6px; display: inline-block; }
 
-        /* ========================================================= */
-        /* 内容排版与卡片 */
-        /* ========================================================= */
         .container { max-width: 1200px; margin: 80px auto 40px; padding: 0 2% 80px; }
-
         .profile-header {
-            background: var(--surface); padding: 30px; border-radius: var(--radius-lg); 
-            display: flex; align-items: center; gap: 24px; margin-bottom: 30px; 
+            background: var(--surface); padding: 30px; border-radius: var(--radius-lg);
+            display: flex; align-items: center; gap: 24px; margin-bottom: 30px;
             box-shadow: var(--shadow-sm);
         }
         .profile-info { flex: 1; }
@@ -127,112 +107,94 @@
         .profile-info p { margin: 0 0 6px 0; color: var(--text-secondary); font-size: 13px; }
         .profile-info .bio { color: var(--text-primary); font-size: 14px; margin-top: 6px; }
         .badge-admin { background: #FFF4E5; color: #FF9800; font-size: 11px; padding: 2px 8px; border-radius: 6px; }
-        
         .profile-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .section-title { font-size: 16px; margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;}
-        .section-title::before { content: ''; display: block; width: 4px; height: 16px; background: var(--accent); border-radius: 4px; }
 
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .section-title { font-size: 16px; margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .section-title::before { content: ''; display: block; width: 4px; height: 16px; background: var(--accent); border-radius: 4px; }
         .view-toggles button { padding: 4px 12px; font-size: 12px; margin-left: 8px; background: #F0F4F4; color: var(--text-secondary); }
         .view-toggles button.active { background: var(--accent); color: white; }
 
-        /* 网格视图 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        /* 列表视图 */
         .grid.list-view { grid-template-columns: 1fr; }
         .grid.list-view .card { flex-direction: row; align-items: stretch; height: 180px; }
         .grid.list-view .card-img-wrapper { width: 180px; height: 100%; flex-shrink: 0; }
         .grid.list-view .card-img { height: 100%; aspect-ratio: auto; }
-        
+
         .card {
-            background: var(--surface); border-radius: var(--radius-md); 
+            background: var(--surface); border-radius: var(--radius-md);
             overflow: hidden; box-shadow: var(--shadow-sm); cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex; flex-direction: column;
         }
         .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
-        
         .card-img-wrapper { position: relative; width: 100%; }
-        .card-img { 
-            width: 100%; aspect-ratio: 3/4; object-fit: cover; 
-            display: block; background: #F4F7F6; 
+        .card-img {
+            width: 100%; aspect-ratio: 3/4; object-fit: cover;
+            display: block; background: #F4F7F6;
         }
         .multi-pic-badge {
             position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
             color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px;
         }
-        
         .card-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .card-title { 
+        .card-title {
             margin: 0; font-size: 15px; font-weight: 600; color: var(--text-primary);
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
             line-height: 1.4;
         }
-        .card-desc { 
-            margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5; 
+        .card-desc {
+            margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
             white-space: pre-wrap;
         }
-        
-        .card-footer { 
-            display: flex; align-items: center; justify-content: space-between; 
+        .card-footer {
+            display: flex; align-items: center; justify-content: space-between;
             margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border);
         }
         .author-info { display: flex; align-items: center; gap: 8px; }
-        .author-name { font-size: 12px; font-weight: 500; color: var(--text-secondary); transition: 0.2s;}
+        .author-name { font-size: 12px; font-weight: 500; color: var(--text-secondary); transition: 0.2s; }
         .author-info:hover .author-name { color: var(--accent); }
-        
         .action-btns { display: flex; gap: 10px; align-items: center; }
-        .btn-text { color: var(--text-secondary); background: none; border: none; font-size: 12px; padding: 4px; margin: 0; display: flex; align-items: center; gap: 4px;}
+        .btn-text { color: var(--text-secondary); background: none; border: none; font-size: 12px; padding: 4px; margin: 0; display: flex; align-items: center; gap: 4px; }
         .btn-text:hover { color: var(--accent); }
         .btn-text.danger:hover { color: var(--danger); }
         .btn-text.liked { color: var(--danger); }
-        
-        /* ========================================================= */
-        /* 详情页设计 */
-        /* ========================================================= */
+
         .detail-view { background: var(--surface); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); max-width: 800px; margin: 0 auto; }
-        .detail-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); cursor: pointer; font-size: 14px; margin-bottom: 20px; transition: 0.2s;}
+        .detail-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); cursor: pointer; font-size: 14px; margin-bottom: 20px; transition: 0.2s; }
         .detail-back:hover { color: var(--accent); }
         .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .detail-title { font-size: 24px; font-weight: 700; margin: 0 0 10px 0; }
-        .detail-meta { display: flex; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 13px; }
-        
+        .detail-meta { display: flex; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 13px; margin-top: 8px; }
         .detail-images { display: flex; flex-direction: column; gap: 16px; margin-bottom: 30px; }
-        .detail-img { width: 100%; border-radius: var(--radius-md); object-fit: contain; background: #F4F7F6; max-height: 600px; cursor: zoom-in; }
-        
+        .detail-img { width: 100%; border-radius: var(--radius-md); object-fit: contain; background: #F4F7F6; max-height: 600px; cursor: pointer; }
         .detail-content { font-size: 15px; line-height: 1.8; color: var(--text-primary); white-space: pre-wrap; margin-bottom: 40px; }
-        
-        .detail-actions { display: flex; justify-content: center; align-items: center; padding-bottom: 30px; border-bottom: 1px solid var(--border); margin-bottom: 30px;}
-        .btn-big-like { 
+        .detail-actions { display: flex; justify-content: center; align-items: center; padding-bottom: 30px; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        .btn-big-like {
             display: flex; align-items: center; gap: 10px; padding: 12px 30px; font-size: 16px; border-radius: 980px;
             background: #F0F4F4; color: var(--text-secondary); border: 2px solid transparent; transition: 0.3s;
         }
         .btn-big-like.liked { background: #FFF0F0; color: var(--danger); border-color: #FFE4E4; }
         .btn-big-like:hover { transform: scale(1.05); }
 
-        /* 评论区 */
         .comments-section h3 { margin: 0 0 20px 0; font-size: 18px; }
         .comment-input-box { display: flex; gap: 12px; margin-bottom: 30px; }
-        .comment-input-box textarea { 
-            flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); 
+        .comment-input-box textarea {
+            flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md);
             resize: none; font-family: inherit; font-size: 14px; outline: none; transition: 0.3s;
         }
         .comment-input-box textarea:focus { border-color: var(--accent); }
         .comment-input-box button { align-self: flex-end; }
-        
         .comment-list { display: flex; flex-direction: column; gap: 20px; }
         .comment-item { display: flex; gap: 12px; }
         .comment-body { flex: 1; background: #F9FBFA; padding: 12px 16px; border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md); }
         .comment-meta { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
-        .comment-author { font-weight: 600; color: var(--text-primary); }
+        .comment-author { font-weight: 600; color: var(--text-primary); cursor: pointer; transition: 0.2s; }
+        .comment-author:hover { color: var(--accent); }
         .comment-time { color: var(--text-secondary); }
         .comment-text { font-size: 14px; line-height: 1.5; margin: 0; white-space: pre-wrap; }
 
-        /* ========================================================= */
-        /* 弹窗及表单 */
-        /* ========================================================= */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
             display: flex; justify-content: center; align-items: center; z-index: 2000;
@@ -244,70 +206,62 @@
             max-height: 90vh; overflow-y: auto;
         }
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        
         .modal-content.large { max-width: 480px; }
         .modal-content h3 { margin: 0 0 24px 0; font-size: 18px; text-align: center; color: var(--text-primary); }
-        
+
         .btn-close {
-            position: absolute; top: 16px; right: 16px; background: #F0F4F4; color: #AAB7B7; 
-            width: 32px; height: 32px; border-radius: 50%; padding: 0; 
+            position: absolute; top: 16px; right: 16px; background: #F0F4F4; color: #AAB7B7;
+            width: 32px; height: 32px; border-radius: 50%; padding: 0;
             display: flex; justify-content: center; align-items: center; font-size: 16px; z-index: 10;
         }
         .btn-close:hover { background: #E4EBEB; color: var(--text-primary); }
-        
+
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); font-weight: 500;}
+        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
         .form-group input[type="text"], .form-group input[type="password"], .form-group textarea {
             width: 100%; padding: 12px 14px; background: #F4F7F7;
             border: 1px solid transparent; border-radius: var(--radius-md);
             color: var(--text-primary); font-family: inherit; font-size: 14px; transition: all 0.3s;
         }
-        .form-group input:focus, .form-group textarea:focus { 
-            outline: none; border-color: var(--accent); background: #FFF; box-shadow: 0 0 0 4px rgba(130,194,189,0.1); 
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--accent); background: #FFF; box-shadow: 0 0 0 4px rgba(130,194,189,0.1);
         }
-        
+        .upload-previews { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .preview-item {
+            width: 60px; height: 60px; position: relative; border-radius: 8px; overflow: hidden;
+            cursor: pointer; user-select: none; -webkit-touch-callout: none; border: 2px solid transparent;
+        }
+        .preview-item.is-cover { border-color: var(--accent); box-shadow: 0 0 8px rgba(130, 194, 189, 0.4); }
+        .preview-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        .cover-label { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(130, 194, 189, 0.9); color: white; font-size: 10px; text-align: center; padding: 2px 0; }
+
         .switch-link { text-align: center; margin-top: 16px; font-size: 13px; color: var(--accent); cursor: pointer; }
         .switch-link:hover { text-decoration: underline; }
         .file-upload { display: block; width: 100%; color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
-        .file-hint { font-size: 11px; color: var(--text-secondary); margin-top: 4px;}
-        
+        .file-hint { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+
         .empty-state { text-align: center; padding: 80px 20px; color: var(--text-secondary); }
-        .empty-state h3 { color: var(--text-primary); font-size: 16px; margin-bottom: 8px;}
-        .loader { text-align: center; padding: 30px; color: var(--accent); font-size: 14px; font-weight: 600;}
+        .empty-state h3 { color: var(--text-primary); font-size: 16px; margin-bottom: 8px; }
+        .loader { text-align: center; padding: 30px; color: var(--accent); font-size: 14px; font-weight: 600; }
 
-        /* 图片大图预览 (Lightbox) */
-        .lightbox-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-            display: flex; justify-content: center; align-items: center; z-index: 3000;
-            padding: 20px;
-        }
-        .lightbox-img {
-            max-width: 100%; max-height: 100%; object-fit: contain;
-            border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            animation: modalFadeIn 0.3s ease;
-        }
-
-        /* ========================================================= */
-        /* 移动端深度适配 */
-        /* ========================================================= */
         @media (max-width: 600px) {
             .navbar { padding: 0 16px; }
-            .nav-left h2 span { display: none; } 
-            .search-box input { width: 100px; }
-            .search-box input:focus { width: 140px; }
-            .user-badge span { display: none; } 
-            
+            .nav-left h2 span { display: none; }
+            .search-box input { width: 110px; }
+            .search-box input:focus { width: 150px; }
+            .user-badge span { display: none; }
+
             .container { padding: 0 12px 80px; margin-top: 70px; }
-            
+
             .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .grid.list-view .card { height: 120px; }
             .grid.list-view .card-img-wrapper { width: 100px; }
-            .card-body { padding: 10px; gap: 6px;}
+            .card-body { padding: 10px; gap: 6px; }
             .card-title { font-size: 13px; }
             .card-desc { font-size: 12px; -webkit-line-clamp: 1; }
             .author-name { font-size: 11px; }
             .avatar-sm { width: 20px; height: 20px; }
-            
+
             .profile-header { flex-direction: column; text-align: center; padding: 24px 16px; gap: 16px; }
             .profile-actions { justify-content: center; }
             .fab-post { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 24px; }
@@ -320,14 +274,12 @@
     </style>
 </head>
 <body>
-
 <div id="app">
     <nav class="navbar">
         <div class="nav-left">
             <h2 @click="goHome">🌱 <span>主页</span></h2>
             <div class="search-box">
-                <!-- 修改：这里现在主要搜索标题 -->
-                <input type="text" v-model="searchInput" @keyup.enter="doSearchBox" placeholder="搜索帖子标题...">
+                <input type="text" v-model="searchInput" @keyup.enter="doSearchBox" placeholder="标题 / 标签 / QQ号">
                 <button @click="doSearchBox">🔍</button>
             </div>
         </div>
@@ -344,11 +296,10 @@
         </div>
     </nav>
 
-    <button class="fab-post" v-if="currentUser && view !== 'post_detail'" @click="showPostModal = true" title="发帖分享">＋</button>
+    <button class="fab-post" v-if="currentUser && view !== 'post_detail'" @click="openPostModal" title="发帖分享">＋</button>
 
     <div class="container">
         <template v-if="view === 'home'">
-            <!-- 搜索状态提示 -->
             <div class="section-header" v-if="searchKeyword">
                 <h3 class="section-title">搜索结果: "{{ searchKeyword }}"</h3>
                 <button class="btn-text danger" @click="goHome">清除搜索</button>
@@ -359,7 +310,7 @@
                 <p v-if="searchKeyword">没有找到与 "{{ searchKeyword }}" 相关的帖子</p>
                 <p v-else>还没有人分享过角色卡，快来做第一个吧！</p>
             </div>
-            
+
             <div class="grid" v-else>
                 <div class="card" v-for="post in posts" :key="post.id" @click="openPostDetail(post)">
                     <div class="card-img-wrapper">
@@ -367,6 +318,9 @@
                         <span class="multi-pic-badge" v-if="getImages(post).length > 1">{{ getImages(post).length }}图</span>
                     </div>
                     <div class="card-body">
+                        <div>
+                            <span class="tag-badge" v-if="post.tag">{{ post.tag }}</span>
+                        </div>
                         <h3 class="card-title">{{ post.title || '无标题' }}</h3>
                         <p class="card-desc">{{ getPostContent(post.content) }}</p>
                         <div class="card-footer">
@@ -378,7 +332,6 @@
                                 <button class="btn-text" :class="{ liked: isLiked(post) }" @click.stop="toggleLike(post)">
                                     {{ isLiked(post) ? '❤️' : '🤍' }} {{ getLikesCount(post) }}
                                 </button>
-                                <!-- 修改：主页卡片中补充管理员/主人的删除与编辑按钮 -->
                                 <template v-if="canManage(post)">
                                     <button class="btn-text" @click.stop="openEditPost(post)">编辑</button>
                                     <button class="btn-text danger" @click.stop="deletePost(post.id, $event)">删除</button>
@@ -397,7 +350,7 @@
                 <img :src="targetProfile.avatar_url" class="avatar-lg" @click="previewImage(targetProfile.avatar_url)" style="cursor: zoom-in;">
                 <div class="profile-info">
                     <h2>
-                        {{ targetProfile.nickname }} 
+                        {{ targetProfile.nickname }}
                         <span v-if="targetProfile.administrator" class="badge-admin">管理员</span>
                     </h2>
                     <p>QQ号 / ID：{{ targetProfile.qq_number }}</p>
@@ -424,7 +377,7 @@
                     <button :class="{ active: profileViewMode === 'list' }" @click="profileViewMode = 'list'">列表</button>
                 </div>
             </div>
-            
+
             <div class="empty-state" v-if="posts.length === 0 && !isLoading">
                 <p>一片荒芜，这里什么都没有留下。</p>
             </div>
@@ -435,6 +388,7 @@
                         <span class="multi-pic-badge" v-if="getImages(post).length > 1">{{ getImages(post).length }}图</span>
                     </div>
                     <div class="card-body">
+                        <div><span class="tag-badge" v-if="post.tag">{{ post.tag }}</span></div>
                         <h3 class="card-title">{{ post.title || '无标题' }}</h3>
                         <p class="card-desc">{{ getPostContent(post.content) }}</p>
                         <div class="card-footer">
@@ -461,10 +415,11 @@
         <template v-if="view === 'post_detail' && currentPost">
             <div class="detail-view">
                 <div class="detail-back" @click="goBack">← 返回上一页</div>
-                
+
                 <div class="detail-header">
                     <div>
                         <h1 class="detail-title">{{ currentPost.title || '无标题' }}</h1>
+                        <span class="tag-badge" v-if="currentPost.tag" style="margin-bottom: 10px;">{{ currentPost.tag }}</span>
                         <div class="detail-meta">
                             <div class="author-info" @click="goToProfile(currentPost.qq_number)" style="cursor: pointer;">
                                 <img :src="getAvatar(currentPost)" class="avatar-sm">
@@ -476,7 +431,7 @@
                 </div>
 
                 <div class="detail-images">
-                    <img v-for="(imgUrl, index) in getImages(currentPost)" :key="index" 
+                    <img v-for="(imgUrl, index) in getImages(currentPost)" :key="index"
                          :src="imgUrl" class="detail-img" @click="previewImage(imgUrl)" @error="handleImageError">
                 </div>
 
@@ -486,18 +441,17 @@
                     <button class="btn-big-like" :class="{ liked: isLiked(currentPost) }" @click="toggleLike(currentPost)">
                         {{ isLiked(currentPost) ? '❤️ 已赞' : '🤍 点赞' }} ({{ getLikesCount(currentPost) }})
                     </button>
-                    <!-- 修改：在详情页同样增加管理员操作入口 -->
                     <template v-if="canManage(currentPost)">
                         <button class="btn-outline" style="margin-left: 20px; border-radius: 980px; padding: 10px 24px;" @click="openEditPost(currentPost)">编辑</button>
-                        <button class="btn-danger" style="margin-left: 10px; border-radius: 980px; padding: 10px 24px;" @click="deletePost(currentPost.id, null, true)">删除帖子</button>
+                        <button class="btn-danger" style="margin-left: 10px; border-radius: 980px; padding: 10px 24px;" @click="deletePost(currentPost.id, null, true)">删除</button>
                     </template>
                 </div>
 
                 <div class="comments-section">
                     <h3>留言评论 ({{ getCommentsList(currentPost).length }})</h3>
-                    
+
                     <div class="comment-input-box" v-if="currentUser">
-                        <img :src="currentUser.avatar_url" class="avatar-sm">
+                        <img :src="currentUser.avatar_url" class="avatar-sm" @click="goToMyProfile">
                         <textarea v-model="commentInput" rows="2" placeholder="说点什么吧..." @keyup.ctrl.enter="submitComment"></textarea>
                         <button class="btn-primary" @click="submitComment">发布</button>
                     </div>
@@ -507,10 +461,10 @@
 
                     <div class="comment-list">
                         <div class="comment-item" v-for="(comment, idx) in getCommentsList(currentPost)" :key="idx">
-                            <img :src="comment.avatar_url || 'https://via.placeholder.com/28'" class="avatar-sm" style="cursor:pointer;" @click="goToProfile(comment.qq_number)">
+                            <img :src="comment.avatar_url || 'https://via.placeholder.com/28'" class="avatar-sm" @click="goToProfile(comment.qq_number)">
                             <div class="comment-body">
                                 <div class="comment-meta">
-                                    <span class="comment-author" @click="goToProfile(comment.qq_number)" style="cursor:pointer;">{{ comment.nickname }}</span>
+                                    <span class="comment-author" @click="goToProfile(comment.qq_number)">{{ comment.nickname }}</span>
                                     <span class="comment-time">{{ formatTime(comment.time) }}</span>
                                 </div>
                                 <p class="comment-text">{{ comment.text }}</p>
@@ -523,11 +477,6 @@
                 </div>
             </div>
         </template>
-    </div>
-
-    <div class="lightbox-overlay" v-if="previewImageUrl" @click="previewImageUrl = ''">
-        <button class="btn-close" style="top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white;">×</button>
-        <img :src="previewImageUrl" class="lightbox-img" @click.stop>
     </div>
 
     <div class="modal-overlay" v-if="showLoginModal" @click.self="showLoginModal = false">
@@ -550,7 +499,6 @@
             <div class="form-group"><label>QQ号码 (作为账号)</label><input type="text" v-model="regForm.qq" placeholder="请输入你的QQ号"></div>
             <div class="form-group"><label>设置密码</label><input type="password" v-model="regForm.password" placeholder="设置一个密码"></div>
             <div class="form-group"><label>显示昵称</label><input type="text" v-model="regForm.nickname" placeholder="想让大家怎么称呼你？"></div>
-            <div class="form-group"><label>一句话简介 (选填)</label><input type="text" v-model="regForm.bio" placeholder="简单的自我介绍"></div>
             <div class="form-group">
                 <label>个人头像 (可选)</label>
                 <input type="file" accept="image/*" class="file-upload" @change="e => regForm.avatarFile = e.target.files[0]">
@@ -562,17 +510,30 @@
         </div>
     </div>
 
-    <div class="modal-overlay" v-if="showPostModal" @click.self="showPostModal = false">
+    <div class="modal-overlay" v-if="showPostModal" @click.self="closePostModal">
         <div class="modal-content large">
-            <button class="btn-close" @click="showPostModal = false">×</button>
+            <button class="btn-close" @click="closePostModal">×</button>
             <h3>分享帖子</h3>
+
             <div class="form-group">
                 <label>选择图片 (支持多选 1~5 张)</label>
-                <input type="file" accept="image/*" multiple class="file-upload" @change="handlePostFiles">
-                <div class="file-hint">已选 {{ postForm.imageFiles.length }} 张（最多 5 张）</div>
+                <input type="file" accept="image/*" multiple class="file-upload" @change="handlePostFiles" ref="fileInput">
+                <div class="upload-previews" v-if="postForm.previewUrls.length > 0">
+                    <div class="preview-item" v-for="(url, idx) in postForm.previewUrls" :key="idx"
+                         :class="{ 'is-cover': postForm.coverIndex === idx }"
+                         @touchstart="startLongPress(idx)" @touchend="clearLongPress"
+                         @mousedown="startLongPress(idx)" @mouseup="clearLongPress" @mouseleave="clearLongPress">
+                        <img :src="url">
+                        <div class="cover-label" v-if="postForm.coverIndex === idx">封面</div>
+                    </div>
+                    <div class="file-hint" style="width: 100%;"><span style="color:var(--accent)">💡 长按上方任意图片可将其设为封面</span></div>
+                </div>
             </div>
+
             <div class="form-group"><label>标题</label><input type="text" v-model="postForm.title" placeholder="例如：角色名字等"></div>
-            <div class="form-group"><label>介绍配文 (选填)</label><textarea v-model="postForm.content" rows="5" placeholder="详细介绍一下设定或故事吧..."></textarea></div>
+            <div class="form-group"><label>相关标签 (选填)</label><input type="text" v-model="postForm.tag" placeholder="例如：所属系列"></div>
+            <div class="form-group"><label>介绍配文 (选填)</label><textarea v-model="postForm.content" rows="4" placeholder="详细介绍一下设定或故事吧..."></textarea></div>
+
             <button class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;" @click="doPost" :disabled="isUploading">
                 {{ isUploading ? '正在上传图文...' : '发布分享' }}
             </button>
@@ -584,6 +545,7 @@
             <button class="btn-close" @click="showEditPostModal = false">×</button>
             <h3>修改分享内容</h3>
             <div class="form-group"><label>标题</label><input type="text" v-model="editPostForm.title"></div>
+            <div class="form-group"><label>相关标签</label><input type="text" v-model="editPostForm.tag" placeholder="例如：原神"></div>
             <div class="form-group"><label>介绍配文</label><textarea v-model="editPostForm.content" rows="6"></textarea></div>
             <button class="btn-primary" style="width: 100%; padding: 12px; margin-top: 10px;" @click="doEditPost" :disabled="isUploading">
                 {{ isUploading ? '保存中...' : '确认修改' }}
@@ -609,508 +571,490 @@
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://eciohpmllkevcjpxyssp.supabase.co/rest/v1/cards';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjaW9ocG1sbGtldmNqcHh5c3NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTgyMTEsImV4cCI6MjA5MjU5NDIxMX0.aQ2neAKZk9Pf3yRpVjn-Xm4OdfKmV2i0C2UqsRwb2Co';
-    const IMGBB_API_KEY = 'D05b5a3afc2aae920337cd5de3246b53';
-    
-    const HEADERS = {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
-    };
+const SUPABASE_URL = 'https://eciohpmllkevcjpxyssp.supabase.co/rest/v1/cards';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjaW9ocG1sbGtldmNqcHh5c3NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMTgyMTEsImV4cCI6MjA5MjU5NDIxMX0.aQ2neAKZk9Pf3yRpVjn-Xm4OdfKmV2i0C2UqsRwb2Co';
+const IMGBB_API_KEY = 'D05b5a3afc2aae920337cd5de3246b53';
 
-    async function uploadToImgBB(file) {
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('key', IMGBB_API_KEY);
-        const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (!data.success) throw new Error('上传图片失败，请检查网络或更换图片');
-        return data.data.url;
-    }
+const HEADERS = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json'
+};
 
-    const app = Vue.createApp({
-        data() {
-            return {
-                view: 'home', // 'home', 'user_profile', 'post_detail'
-                profileViewMode: 'grid', // 'grid' | 'list'
-                searchInput: '',
-                searchKeyword: '', // 修改：新增搜索关键词状态
-                currentSearchQQ: '',
-                currentUser: null,
-                targetProfile: null,
-                currentPost: null, // 当前查看详情的帖子
-                commentInput: '',
-                
-                // 列表数据与无限滚动
-                posts: [],
-                page: 0,
-                pageSize: 12,
-                isLoading: false,
-                hasMore: true,
-                
-                isAuthLoading: false,
-                isUploading: false,
-                
-                // 弹窗控制
-                showLoginModal: false,
-                showRegisterModal: false,
-                showPostModal: false,
-                showEditPostModal: false,
-                showEditProfileModal: false,
-                previewImageUrl: '',
-                
-                // 表单数据
-                loginForm: { qq: '', password: '' },
-                regForm: { qq: '', password: '', nickname: '', bio: '', avatarFile: null },
-                postForm: { title: '', content: '', imageFiles: [] },
-                editPostForm: { id: null, title: '', content: '' },
-                editProfileForm: { nickname: '', bio: '', avatarFile: null },
-                
-                // 浏览历史记录
-                historyView: 'home',
-                historyProfileQQ: ''
+async function uploadToImgBB(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('key', IMGBB_API_KEY);
+    const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!data.success) throw new Error('上传图片失败，请检查网络或更换图片');
+    return data.data.url;
+}
+
+const app = Vue.createApp({
+    data() {
+        return {
+            view: 'home',
+            profileViewMode: 'grid',
+            searchInput: '',
+            searchKeyword: '',
+            currentSearchQQ: '',
+            currentUser: null,
+            targetProfile: null,
+            currentPost: null,
+            commentInput: '',
+
+            posts: [],
+            page: 0,
+            pageSize: 12,
+            isLoading: false,
+            hasMore: true,
+
+            isAuthLoading: false,
+            isUploading: false,
+
+            showLoginModal: false,
+            showRegisterModal: false,
+            showPostModal: false,
+            showEditPostModal: false,
+            showEditProfileModal: false,
+
+            loginForm: { qq: '', password: '' },
+            regForm: { qq: '', password: '', nickname: '', avatarFile: null },
+            postForm: { title: '', tag: '', content: '', imageFiles: [], previewUrls: [], coverIndex: 0 },
+            longPressTimer: null,
+            editPostForm: { id: null, title: '', tag: '', content: '' },
+            editProfileForm: { nickname: '', bio: '', avatarFile: null },
+            historyView: 'home',
+            historyProfileQQ: ''
+        }
+    },
+    mounted() {
+        const savedUser = localStorage.getItem('community_user_v2');
+        if (savedUser) { try { this.currentUser = JSON.parse(savedUser); } catch(e) {} }
+        this.loadHome(true);
+        window.addEventListener('scroll', this.handleScroll);
+    },
+    unmounted() {
+        window.removeEventListener('scroll', this.handleScroll);
+    },
+    methods: {
+        canManage(post) {
+            if (!this.currentUser) return false;
+            if (this.currentUser.administrator === true) return true;
+            if (this.currentUser.qq_number === post.qq_number) return true;
+            return false;
+        },
+        getAvatar(post) {
+            if (post.avatar_url) return post.avatar_url;
+            return `https://api.dicebear.com/7.x/adventurer/svg?seed=${post.qq_number || 'default'}`;
+        },
+        getPostContent(contentData) {
+            if (!contentData) return '暂无介绍';
+            if (typeof contentData === 'object' && contentData.text) return contentData.text;
+            return String(contentData);
+        },
+        formatDate(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        },
+        formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        },
+        formatTag(tagStr) {
+            if (!tagStr) return '';
+            tagStr = tagStr.trim();
+            if (tagStr && !tagStr.startsWith('#')) return '#' + tagStr;
+            return tagStr;
+        },
+        handleImageError(e) { e.target.src = 'https://via.placeholder.com/400x600?text=图片已失效'; },
+        previewImage(url) { window.open(url, '_blank', 'noopener'); },
+
+        getImages(post) {
+            if (!post.image_url || post.image_url === 'SYS_ACCOUNT') return [];
+            try {
+                const parsed = JSON.parse(post.image_url);
+                if (Array.isArray(parsed)) return parsed;
+                return [post.image_url];
+            } catch(e) { return [post.image_url]; }
+        },
+        getThumbnail(post) {
+            if (post.cover_url) return post.cover_url;
+            const imgs = this.getImages(post);
+            return imgs.length > 0 ? imgs[0] : '';
+        },
+
+        getLikesList(post) {
+            try { return JSON.parse(post.like_count || '[]'); }
+            catch(e) { return []; }
+        },
+        getLikesCount(post) { return this.getLikesList(post).length; },
+        isLiked(post) {
+            if (!this.currentUser) return false;
+            return this.getLikesList(post).includes(this.currentUser.qq_number);
+        },
+        async toggleLike(post) {
+            if (!this.currentUser) { this.showLoginModal = true; return; }
+            let likes = this.getLikesList(post);
+            const myQQ = this.currentUser.qq_number;
+            if (likes.includes(myQQ)) likes = likes.filter(q => q !== myQQ);
+            else likes.push(myQQ);
+
+            post.like_count = JSON.stringify(likes);
+            try {
+                await fetch(`${SUPABASE_URL}?id=eq.${post.id}`, {
+                    method: 'PATCH', headers: HEADERS, body: JSON.stringify({ like_count: post.like_count })
+                });
+            } catch(e) { console.error("点赞状态同步失败", e); }
+        },
+
+        getCommentsList(post) {
+            try { return JSON.parse(post.comments || '[]'); }
+            catch(e) { return []; }
+        },
+        async submitComment() {
+            if (!this.commentInput.trim() || !this.currentPost) return;
+
+            let comments = this.getCommentsList(this.currentPost);
+            comments.push({
+                qq_number: this.currentUser.qq_number,
+                nickname: this.currentUser.nickname,
+                avatar_url: this.currentUser.avatar_url,
+                text: this.commentInput.trim(),
+                time: new Date().getTime()
+            });
+
+            const newCommentsStr = JSON.stringify(comments);
+            this.currentPost.comments = newCommentsStr;
+            this.commentInput = '';
+
+            try {
+                await fetch(`${SUPABASE_URL}?id=eq.${this.currentPost.id}`, {
+                    method: 'PATCH', headers: HEADERS, body: JSON.stringify({ comments: newCommentsStr })
+                });
+            } catch(e) { alert("评论发布失败，请重试"); }
+        },
+
+        handleScroll() {
+            const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100;
+            if (bottomOfWindow && !this.isLoading && this.hasMore && this.view !== 'post_detail') {
+                if (this.view === 'home') this.loadHome(false);
+                else if (this.view === 'user_profile') this.goToProfile(this.currentSearchQQ, false);
             }
         },
-        mounted() {
-            const savedUser = localStorage.getItem('community_user_v2');
-            if (savedUser) { try { this.currentUser = JSON.parse(savedUser); } catch(e) {} }
+
+        goHome() {
+            this.searchKeyword = '';
+            this.searchInput = '';
             this.loadHome(true);
-            window.addEventListener('scroll', this.handleScroll);
         },
-        unmounted() {
-            window.removeEventListener('scroll', this.handleScroll);
+        doSearchBox() {
+            const keyword = this.searchInput.trim();
+            if(!keyword) { this.goHome(); return; }
+            this.searchKeyword = keyword;
+            this.loadHome(true);
         },
-        methods: {
-            canManage(post) {
-                if (!this.currentUser) return false;
-                // 修改：此处之前已经做好了管理员判定逻辑，这里直接沿用即可
-                if (this.currentUser.administrator === true) return true;
-                if (this.currentUser.qq_number === post.qq_number) return true;
-                return false;
-            },
-            getAvatar(post) {
-                if (post.avatar_url) return post.avatar_url;
-                return `https://api.dicebear.com/7.x/adventurer/svg?seed=${post.qq_number || 'default'}`;
-            },
-            getPostContent(contentData) {
-                if (!contentData) return '暂无介绍';
-                if (typeof contentData === 'object' && contentData.text) return contentData.text;
-                return String(contentData);
-            },
-            formatDate(timestamp) {
-                if (!timestamp) return '';
-                const date = new Date(timestamp);
-                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            },
-            formatTime(timestamp) {
-                if (!timestamp) return '';
-                const date = new Date(timestamp);
-                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-            },
-            handleImageError(e) {
-                e.target.src = 'https://via.placeholder.com/400x600?text=图片已失效';
-            },
-            previewImage(url) {
-                this.previewImageUrl = url;
-            },
-            
-            // --- 多图解析逻辑 ---
-            getImages(post) {
-                if (!post.image_url || post.image_url === 'SYS_ACCOUNT') return [];
-                try {
-                    const parsed = JSON.parse(post.image_url);
-                    if (Array.isArray(parsed)) return parsed;
-                    return [post.image_url];
-                } catch(e) {
-                    return [post.image_url]; // 兼容老数据单字符串
-                }
-            },
-            getThumbnail(post) {
-                const imgs = this.getImages(post);
-                return imgs.length > 0 ? imgs[0] : '';
-            },
+        async loadHome(reset = true) {
+            this.view = 'home';
+            this.historyView = 'home';
+            if (reset) {
+                this.page = 0;
+                this.posts = [];
+                this.hasMore = true;
+            }
+            if (!this.hasMore || this.isLoading) return;
 
-            // --- 点赞解析逻辑 ---
-            // like_count 列存储点赞用户的 QQ 号 JSON 数组: ["123", "456"]
-            getLikesList(post) {
-                try { return JSON.parse(post.like_count || '[]'); } 
-                catch(e) { return []; }
-            },
-            getLikesCount(post) {
-                return this.getLikesList(post).length;
-            },
-            isLiked(post) {
-                if (!this.currentUser) return false;
-                return this.getLikesList(post).includes(this.currentUser.qq_number);
-            },
-            async toggleLike(post) {
-                if (!this.currentUser) {
-                    this.showLoginModal = true;
-                    return;
-                }
-                let likes = this.getLikesList(post);
-                const myQQ = this.currentUser.qq_number;
-                
-                if (likes.includes(myQQ)) {
-                    likes = likes.filter(q => q !== myQQ);
-                } else {
-                    likes.push(myQQ);
-                }
-                
-                // 乐观更新 UI
-                post.like_count = JSON.stringify(likes);
-                
-                // 异步提交
-                try {
-                    await fetch(`${SUPABASE_URL}?id=eq.${post.id}`, {
-                        method: 'PATCH',
-                        headers: HEADERS,
-                        body: JSON.stringify({ like_count: post.like_count })
-                    });
-                } catch(e) { console.error("点赞状态同步失败", e); }
-            },
+            this.isLoading = true;
+            try {
+                const offset = this.page * this.pageSize;
+                let url = `${SUPABASE_URL}?title=neq.$$ACCOUNT$$`;
 
-            // --- 评论解析逻辑 ---
-            getCommentsList(post) {
-                try { return JSON.parse(post.comments || '[]'); } 
-                catch(e) { return []; }
-            },
-            async submitComment() {
-                if (!this.commentInput.trim() || !this.currentPost) return;
-                
-                let comments = this.getCommentsList(this.currentPost);
-                comments.push({
+                if (this.searchKeyword) {
+                    const k = encodeURIComponent(this.searchKeyword);
+                    url += `&or=(title.ilike.*${k}*,tag.ilike.*${k}*,qq_number.ilike.*${k}*)`;
+                }
+
+                url += `&order=created_at.desc&limit=${this.pageSize}&offset=${offset}`;
+
+                const res = await fetch(url, { headers: HEADERS });
+                const newPosts = await res.json();
+
+                if (newPosts.length < this.pageSize) this.hasMore = false;
+                this.posts = [...this.posts, ...newPosts];
+                this.page++;
+            } catch(e) { console.error(e); } finally { this.isLoading = false; }
+        },
+        goToMyProfile() {
+            if(this.currentUser) this.goToProfile(this.currentUser.qq_number, true);
+        },
+        async goToProfile(qq, reset = true) {
+            this.view = 'user_profile';
+            this.currentSearchQQ = qq;
+            this.historyView = 'user_profile';
+            this.historyProfileQQ = qq;
+
+            if (reset) {
+                this.page = 0;
+                this.posts = [];
+                this.hasMore = true;
+                this.targetProfile = null;
+                window.scrollTo(0, 0);
+
+                try {
+                    const accRes = await fetch(`${SUPABASE_URL}?qq_number=eq.${qq}&title=eq.$$ACCOUNT$$`, { headers: HEADERS });
+                    const accData = await accRes.json();
+                    if (accData.length > 0) this.targetProfile = accData[0];
+                } catch(e) {}
+            }
+
+            if (!this.hasMore || this.isLoading) return;
+
+            this.isLoading = true;
+            try {
+                const offset = this.page * this.pageSize;
+                const postRes = await fetch(`${SUPABASE_URL}?title=neq.$$ACCOUNT$$&qq_number=eq.${qq}&order=created_at.desc&limit=${this.pageSize}&offset=${offset}`, { headers: HEADERS });
+                const newPosts = await postRes.json();
+
+                if (newPosts.length < this.pageSize) this.hasMore = false;
+                this.posts = [...this.posts, ...newPosts];
+                this.page++;
+            } catch(e) { console.error(e); } finally { this.isLoading = false; }
+        },
+
+        openPostDetail(post) {
+            this.currentPost = post;
+            this.view = 'post_detail';
+            window.scrollTo(0, 0);
+        },
+        goBack() {
+            this.currentPost = null;
+            if (this.historyView === 'home') this.view = 'home';
+            else if (this.historyView === 'user_profile') this.view = 'user_profile';
+        },
+
+        async doRegister() {
+            const { qq, password, nickname, avatarFile } = this.regForm;
+            if(!qq || !password || !nickname) return alert("QQ、密码、昵称为必填项哦！");
+            this.isAuthLoading = true;
+            try {
+                const checkRes = await fetch(`${SUPABASE_URL}?qq_number=eq.${qq}&title=eq.$$ACCOUNT$$`, { headers: HEADERS });
+                const existing = await checkRes.json();
+                if(existing.length > 0) throw new Error("该QQ号已经注册过了");
+
+                let finalAvatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${qq}`;
+                if (avatarFile) finalAvatarUrl = await uploadToImgBB(avatarFile);
+
+                const newAccount = {
+                    title: '$$ACCOUNT$$', content: { text: 'SYS_ACCOUNT' }, image_url: 'SYS_ACCOUNT',
+                    qq_number: qq, password: password, nickname: nickname, avatar_url: finalAvatarUrl, administrator: false,
+                    bio: ''
+                };
+
+                const res = await fetch(SUPABASE_URL, {
+                    method: 'POST', headers: { ...HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(newAccount)
+                });
+                if(!res.ok) throw new Error("注册请求失败");
+
+                const data = await res.json();
+                this.currentUser = data[0];
+                localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
+
+                alert("注册成功，欢迎加入！");
+                this.showRegisterModal = false;
+                this.regForm = { qq: '', password: '', nickname: '', avatarFile: null };
+            } catch(e) { alert(e.message); } finally { this.isAuthLoading = false; }
+        },
+        async doLogin() {
+            const { qq, password } = this.loginForm;
+            if(!qq || !password) return alert("请输入账号和密码");
+            this.isAuthLoading = true;
+            try {
+                const res = await fetch(`${SUPABASE_URL}?qq_number=eq.${qq}&password=eq.${password}&title=eq.$$ACCOUNT$$`, { headers: HEADERS });
+                const users = await res.json();
+                if(users.length === 0) throw new Error("账号或密码错误");
+
+                this.currentUser = users[0];
+                localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
+
+                this.showLoginModal = false;
+                this.loginForm = { qq: '', password: '' };
+            } catch(e) { alert(e.message); } finally { this.isAuthLoading = false; }
+        },
+        doLogout() {
+            if(confirm("确定退出登录吗？")) {
+                this.currentUser = null;
+                localStorage.removeItem('community_user_v2');
+                this.loadHome(true);
+            }
+        },
+
+        openEditProfile() {
+            this.editProfileForm = {
+                nickname: this.currentUser.nickname,
+                bio: this.currentUser.bio || '',
+                avatarFile: null
+            };
+            this.showEditProfileModal = true;
+        },
+        async doEditProfile() {
+            if(!this.editProfileForm.nickname.trim()) return alert("昵称不能为空哦");
+            this.isUploading = true;
+            try {
+                let finalAvatarUrl = this.currentUser.avatar_url;
+                if (this.editProfileForm.avatarFile) finalAvatarUrl = await uploadToImgBB(this.editProfileForm.avatarFile);
+
+                const updateData = { nickname: this.editProfileForm.nickname, bio: this.editProfileForm.bio, avatar_url: finalAvatarUrl };
+
+                const res = await fetch(`${SUPABASE_URL}?qq_number=eq.${this.currentUser.qq_number}&title=eq.$$ACCOUNT$$`, {
+                    method: 'PATCH', headers: { ...HEADERS, 'Prefer': 'return=representation' }, body: JSON.stringify(updateData)
+                });
+                if(!res.ok) throw new Error("资料更新失败");
+
+                const data = await res.json();
+                this.currentUser = data[0];
+                this.targetProfile = data[0];
+                localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
+
+                this.showEditProfileModal = false;
+                alert("资料修改成功！");
+            } catch(e) { alert(e.message); } finally { this.isUploading = false; }
+        },
+
+        openPostModal() {
+            this.clearPostForm();
+            this.showPostModal = true;
+        },
+        closePostModal() {
+            this.clearPostForm();
+            this.showPostModal = false;
+        },
+        clearPostForm() {
+            this.postForm.previewUrls.forEach(url => URL.revokeObjectURL(url));
+            this.postForm = { title: '', tag: '', content: '', imageFiles: [], previewUrls: [], coverIndex: 0 };
+        },
+        handlePostFiles(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            let selectedFiles = files;
+            if (files.length > 5) {
+                alert("最多只能上传 5 张图片！");
+                selectedFiles = files.slice(0, 5);
+            }
+
+            this.postForm.previewUrls.forEach(url => URL.revokeObjectURL(url));
+
+            this.postForm.imageFiles = selectedFiles;
+            this.postForm.previewUrls = selectedFiles.map(file => URL.createObjectURL(file));
+            this.postForm.coverIndex = 0;
+        },
+        startLongPress(index) {
+            this.longPressTimer = setTimeout(() => {
+                this.postForm.coverIndex = index;
+            }, 500);
+        },
+        clearLongPress() {
+            if (this.longPressTimer) {
+                clearTimeout(this.longPressTimer);
+                this.longPressTimer = null;
+            }
+        },
+
+        async doPost() {
+            if(this.postForm.imageFiles.length === 0) return alert("分享OC必须至少选一张图哦！");
+            if(!this.postForm.title) return alert("给设定起个标题吧！");
+
+            this.isUploading = true;
+            try {
+                const imageUrls = [];
+                for (let file of this.postForm.imageFiles) {
+                    const url = await uploadToImgBB(file);
+                    imageUrls.push(url);
+                }
+
+                const imgUrlStr = JSON.stringify(imageUrls);
+                const finalCoverUrl = imageUrls[this.postForm.coverIndex];
+                const formattedTag = this.formatTag(this.postForm.tag);
+
+                const newPost = {
+                    title: this.postForm.title,
+                    tag: formattedTag,
+                    content: { text: this.postForm.content },
+                    image_url: imgUrlStr,
+                    cover_url: finalCoverUrl,
                     qq_number: this.currentUser.qq_number,
                     nickname: this.currentUser.nickname,
                     avatar_url: this.currentUser.avatar_url,
-                    text: this.commentInput.trim(),
-                    time: new Date().getTime()
+                    user_id: this.currentUser.id,
+                    like_count: '[]', comments: '[]'
+                };
+
+                const res = await fetch(SUPABASE_URL, { method: 'POST', headers: HEADERS, body: JSON.stringify(newPost) });
+                if(!res.ok) throw new Error("保存失败，请检查网络");
+
+                this.closePostModal();
+
+                if(this.view === 'home') this.loadHome(true);
+                else this.goToProfile(this.targetProfile.qq_number, true);
+            } catch(e) { alert(e.message); } finally { this.isUploading = false; }
+        },
+
+        openEditPost(post) {
+            this.editPostForm = {
+                id: post.id,
+                title: post.title,
+                tag: post.tag || '',
+                content: this.getPostContent(post.content)
+            };
+            this.showEditPostModal = true;
+        },
+        async doEditPost() {
+            if(!this.editPostForm.title.trim()) return alert("标题不能为空");
+            this.isUploading = true;
+            try {
+                const formattedTag = this.formatTag(this.editPostForm.tag);
+                const updateData = {
+                    title: this.editPostForm.title,
+                    tag: formattedTag,
+                    content: { text: this.editPostForm.content }
+                };
+                const res = await fetch(`${SUPABASE_URL}?id=eq.${this.editPostForm.id}`, {
+                    method: 'PATCH', headers: HEADERS, body: JSON.stringify(updateData)
                 });
-                
-                const newCommentsStr = JSON.stringify(comments);
-                this.currentPost.comments = newCommentsStr; // 乐观更新 UI
-                this.commentInput = '';
-                
-                try {
-                    await fetch(`${SUPABASE_URL}?id=eq.${this.currentPost.id}`, {
-                        method: 'PATCH',
-                        headers: HEADERS,
-                        body: JSON.stringify({ comments: newCommentsStr })
-                    });
-                } catch(e) { alert("评论发布失败，请重试"); }
-            },
+                if(!res.ok) throw new Error("修改失败");
 
-            // --- 无限滚动逻辑 ---
-            handleScroll() {
-                const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100;
-                if (bottomOfWindow && !this.isLoading && this.hasMore && this.view !== 'post_detail') {
-                    if (this.view === 'home') this.loadHome(false);
-                    else if (this.view === 'user_profile') this.goToProfile(this.currentSearchQQ, false);
+                this.showEditPostModal = false;
+                const postIndex = this.posts.findIndex(p => p.id === this.editPostForm.id);
+                if(postIndex !== -1) {
+                    this.posts[postIndex].title = updateData.title;
+                    this.posts[postIndex].tag = updateData.tag;
+                    this.posts[postIndex].content = updateData.content;
                 }
-            },
-            
-            // --- 核心拉取逻辑与搜索 ---
-            // 修改：清理搜索状态并加载首页
-            goHome() {
-                this.searchKeyword = '';
-                this.searchInput = '';
-                this.loadHome(true);
-            },
-            // 修改：触发标题搜索逻辑
-            doSearchBox() {
-                const keyword = this.searchInput.trim();
-                if(!keyword) {
-                    this.goHome();
-                    return;
+                if (this.currentPost && this.currentPost.id === this.editPostForm.id) {
+                    this.currentPost.title = updateData.title;
+                    this.currentPost.tag = updateData.tag;
+                    this.currentPost.content = updateData.content;
                 }
-                this.searchKeyword = keyword;
-                this.loadHome(true);
-            },
-            // 修改：拉取列表接口支持标题搜索
-            async loadHome(reset = true) {
-                this.view = 'home';
-                this.historyView = 'home';
-                if (reset) {
-                    this.page = 0;
-                    this.posts = [];
-                    this.hasMore = true;
-                }
-                if (!this.hasMore || this.isLoading) return;
-                
-                this.isLoading = true;
-                try {
-                    const offset = this.page * this.pageSize;
-                    let url = `${SUPABASE_URL}?title=neq.$$ACCOUNT$$`;
-                    
-                    // 当有搜索词时，匹配标题模糊查询
-                    if (this.searchKeyword) {
-                        url += `&title=ilike.*${encodeURIComponent(this.searchKeyword)}*`;
-                    }
-                    
-                    url += `&order=created_at.desc&limit=${this.pageSize}&offset=${offset}`;
+            } catch(e) { alert(e.message); } finally { this.isUploading = false; }
+        },
 
-                    const res = await fetch(url, { headers: HEADERS });
-                    const newPosts = await res.json();
-                    
-                    if (newPosts.length < this.pageSize) this.hasMore = false;
-                    this.posts = [...this.posts, ...newPosts];
-                    this.page++;
-                } catch(e) { console.error(e); } finally { this.isLoading = false; }
-            },
-            goToMyProfile() {
-                if(this.currentUser) this.goToProfile(this.currentUser.qq_number, true);
-            },
-            async goToProfile(qq, reset = true) {
-                this.view = 'user_profile';
-                this.currentSearchQQ = qq;
-                this.historyView = 'user_profile';
-                this.historyProfileQQ = qq;
-                
-                if (reset) {
-                    this.page = 0;
-                    this.posts = [];
-                    this.hasMore = true;
-                    this.targetProfile = null;
-                    window.scrollTo(0, 0);
-                    
-                    // 获取用户信息 (只在重置时获取一次)
-                    try {
-                        const accRes = await fetch(`${SUPABASE_URL}?qq_number=eq.${qq}&title=eq.$$ACCOUNT$$`, { headers: HEADERS });
-                        const accData = await accRes.json();
-                        if (accData.length > 0) this.targetProfile = accData[0];
-                    } catch(e) { console.error(e); }
-                }
-                
-                if (!this.hasMore || this.isLoading) return;
-                
-                this.isLoading = true;
-                try {
-                    const offset = this.page * this.pageSize;
-                    const postRes = await fetch(`${SUPABASE_URL}?title=neq.$$ACCOUNT$$&qq_number=eq.${qq}&order=created_at.desc&limit=${this.pageSize}&offset=${offset}`, { headers: HEADERS });
-                    const newPosts = await postRes.json();
-                    
-                    if (newPosts.length < this.pageSize) this.hasMore = false;
-                    this.posts = [...this.posts, ...newPosts];
-                    this.page++;
-                } catch(e) { console.error(e); } finally { this.isLoading = false; }
-            },
+        async deletePost(id, event, fromDetail = false) {
+            if (event) event.stopPropagation();
+            if(!confirm("确定要删除这条帖子吗？删了就找不回了哦。")) return;
+            try {
+                const res = await fetch(`${SUPABASE_URL}?id=eq.${id}`, { method: 'DELETE', headers: HEADERS });
+                if(!res.ok) throw new Error("删除失败");
 
-            // --- 详情页导航 ---
-            openPostDetail(post) {
-                this.currentPost = post;
-                this.view = 'post_detail';
-                window.scrollTo(0, 0);
-            },
-            goBack() {
-                this.currentPost = null;
-                // 返回之前的列表状态
-                if (this.historyView === 'home') {
-                    this.view = 'home';
-                } else if (this.historyView === 'user_profile') {
-                    this.view = 'user_profile';
-                }
-                // 让浏览器处理滚动条记忆，Vue 会自然恢复 DOM
-            },
-
-            // --- 账号系统 ---
-            async doRegister() {
-                const { qq, password, nickname, bio, avatarFile } = this.regForm;
-                if(!qq || !password || !nickname) return alert("QQ、密码、昵称为必填项哦！");
-                this.isAuthLoading = true;
-                try {
-                    const checkRes = await fetch(`${SUPABASE_URL}?qq_number=eq.${qq}&title=eq.$$ACCOUNT$$`, { headers: HEADERS });
-                    const existing = await checkRes.json();
-                    if(existing.length > 0) throw new Error("该QQ号已经注册过了");
-
-                    let finalAvatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${qq}`;
-                    if (avatarFile) finalAvatarUrl = await uploadToImgBB(avatarFile);
-
-                    const newAccount = {
-                        title: '$$ACCOUNT$$', content: { text: 'SYS_ACCOUNT' }, image_url: 'SYS_ACCOUNT',
-                        qq_number: qq, password: password, nickname: nickname, avatar_url: finalAvatarUrl, administrator: false,
-                        bio: bio // 新增 bio
-                    };
-
-                    const res = await fetch(SUPABASE_URL, {
-                        method: 'POST', headers: { ...HEADERS, 'Prefer': 'return=representation' },
-                        body: JSON.stringify(newAccount)
-                    });
-                    if(!res.ok) throw new Error("注册请求失败");
-                    
-                    const data = await res.json();
-                    this.currentUser = data[0];
-                    localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
-                    
-                    alert("注册成功，欢迎加入！");
-                    this.showRegisterModal = false;
-                    this.regForm = { qq: '', password: '', nickname: '', bio: '', avatarFile: null };
-                } catch(e) { alert(e.message); } finally { this.isAuthLoading = false; }
-            },
-            async doLogin() {
-                const { qq, password } = this.loginForm;
-                if(!qq || !password) return alert("请输入账号和密码");
-                this.isAuthLoading = true;
-                try {
-                    const res = await fetch(`${SUPABASE_URL}?qq_number=eq.${qq}&password=eq.${password}&title=eq.$$ACCOUNT$$`, { headers: HEADERS });
-                    const users = await res.json();
-                    if(users.length === 0) throw new Error("账号或密码错误");
-
-                    this.currentUser = users[0];
-                    localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
-                    
-                    this.showLoginModal = false;
-                    this.loginForm = { qq: '', password: '' };
-                } catch(e) { alert(e.message); } finally { this.isAuthLoading = false; }
-            },
-            doLogout() {
-                if(confirm("确定退出登录吗？")) {
-                    this.currentUser = null;
-                    localStorage.removeItem('community_user_v2');
-                    this.loadHome(true);
-                }
-            },
-
-            // --- 资料修改 ---
-            openEditProfile() {
-                this.editProfileForm = { 
-                    nickname: this.currentUser.nickname,
-                    bio: this.currentUser.bio || '',
-                    avatarFile: null 
-                };
-                this.showEditProfileModal = true;
-            },
-            async doEditProfile() {
-                if(!this.editProfileForm.nickname.trim()) return alert("昵称不能为空哦");
-                this.isUploading = true;
-                try {
-                    let finalAvatarUrl = this.currentUser.avatar_url;
-                    if (this.editProfileForm.avatarFile) {
-                        finalAvatarUrl = await uploadToImgBB(this.editProfileForm.avatarFile);
-                    }
-                    
-                    const updateData = {
-                        nickname: this.editProfileForm.nickname,
-                        bio: this.editProfileForm.bio,
-                        avatar_url: finalAvatarUrl
-                    };
-
-                    const res = await fetch(`${SUPABASE_URL}?qq_number=eq.${this.currentUser.qq_number}&title=eq.$$ACCOUNT$$`, { 
-                        method: 'PATCH', 
-                        headers: { ...HEADERS, 'Prefer': 'return=representation' }, 
-                        body: JSON.stringify(updateData) 
-                    });
-                    if(!res.ok) throw new Error("资料更新失败");
-                    
-                    const data = await res.json();
-                    this.currentUser = data[0];
-                    this.targetProfile = data[0];
-                    localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
-
-                    this.showEditProfileModal = false;
-                    alert("资料修改成功！");
-                } catch(e) { alert(e.message); } finally { this.isUploading = false; }
-            },
-
-            // --- 帖子操作 ---
-            handlePostFiles(e) {
-                const files = Array.from(e.target.files);
-                if (files.length === 0) return;
-                if (files.length > 5) {
-                    alert("最多只能上传 5 张图片！");
-                    e.target.value = "";
-                    this.postForm.imageFiles = files.slice(0, 5);
-                } else {
-                    this.postForm.imageFiles = files;
-                }
-            },
-            async doPost() {
-                if(this.postForm.imageFiles.length === 0) return alert("分享OC必须至少选一张图哦！");
-                if(!this.postForm.title) return alert("给设定起个标题吧！");
-                this.isUploading = true;
-                try {
-                    // 顺序上传所有图片
-                    const imageUrls = [];
-                    for (let file of this.postForm.imageFiles) {
-                        const url = await uploadToImgBB(file);
-                        imageUrls.push(url);
-                    }
-                    
-                    // 将数组转化为 JSON 字符串存储在 image_url 列中
-                    const imgUrlStr = JSON.stringify(imageUrls);
-                    
-                    const newPost = {
-                        title: this.postForm.title, content: { text: this.postForm.content }, image_url: imgUrlStr,
-                        qq_number: this.currentUser.qq_number, nickname: this.currentUser.nickname,
-                        avatar_url: this.currentUser.avatar_url, user_id: this.currentUser.id,
-                        like_count: '[]', comments: '[]' // 初始化空状态
-                    };
-                    const res = await fetch(SUPABASE_URL, { method: 'POST', headers: HEADERS, body: JSON.stringify(newPost) });
-                    if(!res.ok) throw new Error("保存失败，请检查网络");
-
-                    this.showPostModal = false;
-                    this.postForm = { title: '', content: '', imageFiles: [] };
-                    
-                    // 刷新当前视图的第一页
-                    if(this.view === 'home') this.loadHome(true); 
-                    else this.goToProfile(this.targetProfile.qq_number, true);
-                } catch(e) { alert(e.message); } finally { this.isUploading = false; }
-            },
-            
-            openEditPost(post) {
-                this.editPostForm = {
-                    id: post.id,
-                    title: post.title,
-                    content: this.getPostContent(post.content)
-                };
-                this.showEditPostModal = true;
-            },
-            async doEditPost() {
-                if(!this.editPostForm.title.trim()) return alert("标题不能为空");
-                this.isUploading = true;
-                try {
-                    const updateData = {
-                        title: this.editPostForm.title,
-                        content: { text: this.editPostForm.content }
-                    };
-                    const res = await fetch(`${SUPABASE_URL}?id=eq.${this.editPostForm.id}`, { 
-                        method: 'PATCH', headers: HEADERS, body: JSON.stringify(updateData) 
-                    });
-                    if(!res.ok) throw new Error("修改失败");
-
-                    this.showEditPostModal = false;
-                    const postIndex = this.posts.findIndex(p => p.id === this.editPostForm.id);
-                    if(postIndex !== -1) {
-                        this.posts[postIndex].title = updateData.title;
-                        this.posts[postIndex].content = updateData.content;
-                    }
-                    if (this.currentPost && this.currentPost.id === this.editPostForm.id) {
-                        this.currentPost.title = updateData.title;
-                        this.currentPost.content = updateData.content;
-                    }
-                } catch(e) { alert(e.message); } finally { this.isUploading = false; }
-            },
-
-            // 修改：为 deletePost 增加返回判定支持
-            async deletePost(id, event, fromDetail = false) {
-                if (event) event.stopPropagation();
-                if(!confirm("确定要删除这条帖子吗？删了就找不回了哦。")) return;
-                try {
-                    const res = await fetch(`${SUPABASE_URL}?id=eq.${id}`, { method: 'DELETE', headers: HEADERS });
-                    if(!res.ok) throw new Error("删除失败");
-                    
-                    // 从本地列表剔除对应卡片
-                    this.posts = this.posts.filter(p => p.id !== id);
-                    
-                    // 如果是在详情页删除的，顺便切回上一个视图
-                    if (fromDetail) {
-                        this.goBack();
-                    }
-                } catch(e) { alert(e.message); }
-            }
+                this.posts = this.posts.filter(p => p.id !== id);
+                if (fromDetail) this.goBack();
+            } catch(e) { alert(e.message); }
         }
-    });
-    app.mount('#app');
+    }
+});
+app.mount('#app');
 </script>
 </body>
 </html>
