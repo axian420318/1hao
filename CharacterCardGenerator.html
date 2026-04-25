@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -403,8 +404,17 @@
         .is-exporting .page-block {
             box-shadow: none !important;
         }
+
+        /* Fix: make base profile values follow the profile color picker. */
+        .stats-area .data-table td {
+            color: var(--theme) !important;
+        }
+        .stats-area .data-table .val-tag {
+            color: var(--theme) !important;
+            border-color: var(--theme) !important;
+        }
     </style>
-</head>
+<link rel="stylesheet" href="/Static/css/Global.css"/><link rel="stylesheet" href="/Web/css/Global.css"/><link rel="stylesheet" href="/Web/css/SoruxGPT.css"/></head>
 <body>
 
 <div id="app">
@@ -1378,5 +1388,5 @@
 
     app.mount('#app');
 </script>
-</body>
+<script src="/Static/js/jquery.js"></script><script src="/Static/js/Global.js"></script><script src="/Web/js/Global.js"></script><script src="/Web/js/SoruxGPT.js"></script></body>
 </html>
