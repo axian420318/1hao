@@ -93,6 +93,26 @@
         .btn-danger:hover { background: rgba(255, 69, 58, 0.25); }
         .btn-small-danger { background: rgba(255, 69, 58, 0.15); color: var(--apple-danger); padding: 4px 10px; font-size: 12px; }
         .btn-small-danger:hover { background: rgba(255, 69, 58, 0.25); }
+        .btn-link-small {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 980px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            background: rgba(10, 132, 255, 0.15);
+            color: var(--apple-accent);
+            border: 1px solid rgba(10, 132, 255, 0.25);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .btn-link-small:hover {
+            background: rgba(10, 132, 255, 0.25);
+            border-color: rgba(10, 132, 255, 0.4);
+        }
 
         .bottom-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
@@ -408,6 +428,7 @@
             <button type="button" class="btn-primary" @click="exportImage" :disabled="isExporting">
                 {{ isExporting ? '处理中...' : '导出长图' }}
             </button>
+            <a class="btn-link-small" href="https://axian420318.github.io/1hao/photoalbum" target="_blank" rel="noopener noreferrer">群相册</a>
         </div>
     </div>
     
@@ -417,6 +438,7 @@
         <button type="button" class="btn-primary" @click="exportImage" :disabled="isExporting">
             {{ isExporting ? '生成中...' : '导出长图' }}
         </button>
+        <a class="btn-link-small" href="https://axian420318.github.io/1hao/photoalbum" target="_blank" rel="noopener noreferrer">群相册</a>
     </div>
 
     <div class="sticker-controls" v-if="isPreview && activeStickerIndex !== -1">
