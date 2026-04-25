@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -148,8 +147,7 @@
         .color-workbench { background: transparent; margin-bottom: 24px; }
         .wb-stack { display: flex; flex-direction: column; align-items: center; gap: 0;}
         .wb-layer { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-radius: var(--apple-radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); color: #fff; margin: 0 auto; transition: all 0.3s ease; backdrop-filter: blur(10px); }
-        .wb-layer-4 { width: 65%; z-index: 4; }
-        .wb-layer-3 { width: 75%; z-index: 3; margin-top: -12px; }
+        .wb-layer-3 { width: 75%; z-index: 3; }
         .wb-layer-2 { width: 85%; z-index: 2; margin-top: -12px; }
         .wb-layer-1 { width: 100%; z-index: 1; margin-top: -12px; box-sizing: border-box;}
         .swap-wrapper { position: relative; z-index: 10; height: 0; width: 100%; display: flex; justify-content: center; align-items: center; }
@@ -191,16 +189,15 @@
         
         #card-content {
             width: 794px; display: flex; flex-direction: column; gap: 20px;
-            position: relative; text-align: left; margin: 0 auto; 
+            color: #333; position: relative; text-align: left; margin: 0 auto; 
             transition: all 0.3s;
-            color: var(--text-color); /* 应用全局文本色 */
         }
         @media (max-width: 824px) { #card-content { margin: 0; } }
 
         .page-block { background-color: var(--bg); box-shadow: 0 10px 40px rgba(0,0,0,0.9); position: relative; padding: 50px; box-sizing: border-box; overflow: hidden; }
         .bg-gradient .page-block { background: linear-gradient(135deg, var(--bg) 0%, var(--bg-dark) 100%); }
         
-        /* Textures */
+        /* Textures (底层不遮挡) */
         .texture-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; background-repeat: repeat; }
         .texture-noise .texture-overlay { opacity: 0.6; }
         .texture-grid .texture-overlay { opacity: 0.8; }
@@ -217,9 +214,9 @@
         .corner-piece.bottom-left { bottom: 15px; left: 15px; transform: scaleY(-1); }
         .corner-piece.bottom-right { bottom: 15px; right: 15px; transform: scale(-1, -1); }
 
-        /* Base Layout */
+        /* Base Layout (内容层提高 z-index 防止被遮挡) */
         .section-block { margin-bottom: 40px; position: relative; z-index: 10;}
-        .header h1 { font-size: 55px; margin: 0; font-weight: 900; color: var(--text-color); }
+        .header h1 { font-size: 55px; margin: 0; font-weight: 900; color: var(--theme); }
         .header .race { font-size: 20px; font-weight: bold; background: var(--theme); color: #fff; padding: 4px 12px; }
         .header h2 { font-size: 32px; margin: 0; letter-spacing: 2px; color: var(--theme); }
         .info-layout { margin-top: 20px; gap: 40px; }
@@ -235,23 +232,23 @@
         .portrait-container img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; margin: auto; position: relative; z-index: 2; }
         
         .data-table { width: 100%; border-collapse: collapse; font-size: 18px; }
-        .data-table td { padding: 16px 0; color: var(--text-color); }
+        .data-table td { padding: 16px 0; }
         .data-table td:first-child { font-weight: bold; width: 100px; opacity: 0.9; }
         .combined-attr-grid { display: grid; gap: 12px; margin-top: 30px; position: relative; z-index: 10; }
         .combined-attr-grid.twelve-items { grid-template-columns: repeat(6, 1fr); }
         .combined-attr-grid.four-items { grid-template-columns: repeat(4, 1fr); }
-        .attr-card .value { font-size: 26px; font-weight: 900; color: var(--text-color); }
-        .story-section { padding: 30px; font-size: 18px; line-height: 2.2; text-align: justify; white-space: pre-wrap; word-break: break-all; margin-top: 20px; color: var(--text-color); }
+        .attr-card .value { font-size: 26px; font-weight: 900; }
+        .story-section { padding: 30px; font-size: 18px; line-height: 2.2; text-align: justify; white-space: pre-wrap; word-break: break-all; margin-top: 20px; }
         .skill-section { margin-top: 20px; }
         .skill-box { margin-bottom: 20px; }
         .skill-title { padding: 8px 15px; font-size: 18px; display: flex; justify-content: space-between; align-items: center;}
-        .skill-desc { padding: 15px; font-size: 16px; line-height: 1.8; text-align: justify; white-space: pre-wrap; word-break: break-all; color: var(--text-color); }
+        .skill-desc { padding: 15px; font-size: 16px; line-height: 1.8; text-align: justify; white-space: pre-wrap; word-break: break-all; }
         
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px; }
         .gallery-item { padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center;}
         .gallery-img-box { width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
         .gallery-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .gallery-caption { font-size: 16px; font-weight: bold; color: var(--text-color); text-align: center; border-top: 1px dashed var(--theme); padding-top: 10px; width: 100%; }
+        .gallery-caption { font-size: 16px; font-weight: bold; color: var(--theme); text-align: center; border-top: 1px dashed var(--theme); padding-top: 10px; width: 100%; }
 
         .tag { padding: 2px 8px; font-style: normal; font-weight: bold; border-radius: 4px; margin: 0 2px; }
         .val-tag { font-weight: 900; padding: 0 4px; border-bottom: 2px solid; }
@@ -261,6 +258,8 @@
         .avatar-rect .portrait-container { border-radius: 0; clip-path: none; mask-image: none; }
         .avatar-rounded .portrait-container { border-radius: 24px; }
         .avatar-bevel .portrait-container { clip-path: polygon(0 0, calc(100% - 35px) 0, 100% 35px, 100% 100%, 35px 100%, 0 calc(100% - 35px)); border-radius: 0; }
+        
+        /* 兼容导出的边缘消融伪元素法 */
         .avatar-fade .portrait-container { border-bottom: none !important; box-shadow: none !important; background: transparent !important; }
         .avatar-fade .portrait-container::after { content: ''; position: absolute; left: 0; bottom: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0), var(--bg-current)); pointer-events: none; z-index: 10; }
 
@@ -276,6 +275,7 @@
         .style-modern .data-table td:first-child { color: var(--theme); }
         .style-modern .attr-card { padding: 10px; text-align: center; }
         .style-modern .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
+        .style-modern .attr-card .value { color: var(--theme); }
         .style-modern .portrait-container { border: 4px solid var(--theme); background: rgba(255,255,255,0.7); }
         .style-modern .tag { background: var(--theme); color: #fff; }
         .style-modern .val-tag { color: var(--theme); border-color: var(--theme);}
@@ -288,13 +288,14 @@
         .style-vintage .header h1 { font-weight: normal; letter-spacing: 6px; text-shadow: none; }
         .style-vintage .header::after { content: '✤ ✤ ✤'; font-size: 14px; color: var(--theme); margin-top: 12px; letter-spacing: 8px; opacity: 0.8;}
         .style-vintage .race { background: transparent; color: var(--theme); border: 1px solid var(--theme); border-radius: 20px; font-weight: normal; font-size: 16px; margin-top: 12px;}
-        .style-vintage .data-table td { border-bottom: 1px dashed rgba(0,0,0,0.15); }
+        .style-vintage .data-table td { border-bottom: 1px dashed rgba(0,0,0,0.15); color: #333;}
         .style-vintage .data-table td:first-child { color: var(--theme); }
         .style-vintage .skill-title { background: transparent; color: var(--theme); border-bottom: 2px dotted var(--theme); font-weight: bold; font-size: 20px; justify-content: flex-start; gap: 15px; }
         .style-vintage .attr-card { text-align: center; padding: 10px;}
         .style-vintage .attr-card .label { display: block; font-size: 14px; border-bottom: 1px dashed var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
+        .style-vintage .attr-card .value { color: var(--theme); }
         .style-vintage .portrait-container { border: 8px solid rgba(248, 241, 230, 1); outline: 1px solid var(--theme); box-shadow: 4px 4px 12px rgba(0,0,0,0.1); background: rgba(0,0,0,0.02); }
-        .style-vintage .story-section, .style-vintage .skill-desc { line-height: 2.4; }
+        .style-vintage .story-section, .style-vintage .skill-desc { color: #333; line-height: 2.4; }
         .style-vintage .tag { background: rgba(0,0,0,0.05); color: var(--theme); border: 1px solid var(--theme); }
         .style-vintage .val-tag { color: var(--theme); border-color: var(--theme);}
         .style-vintage .layer-tag { background: transparent; color: var(--theme); border: 1px dashed var(--theme); }
@@ -309,6 +310,7 @@
         .style-glass .skill-title { background: rgba(0,0,0,0.6); color: #fff; border-radius: 6px 6px 0 0; }
         .style-glass .attr-card { padding: 10px; text-align: center; }
         .style-glass .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
+        .style-glass .attr-card .value { color: var(--theme); }
         .style-glass .portrait-container { border: 3px solid rgba(255,255,255,0.8); background: rgba(255,255,255,0.3); box-shadow: inset 0 0 20px rgba(255,255,255,0.5); }
         .style-glass .tag { background: var(--theme); color: #fff; }
         .style-glass .val-tag { color: var(--theme); border-color: var(--theme);}
@@ -324,45 +326,49 @@
         .style-metal .skill-title { background: var(--theme); color: #fff; border: 1px solid #000; box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2); text-transform: uppercase; }
         .style-metal .attr-card { padding: 10px; text-align: center; border: 1px solid var(--theme); background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(0,0,0,0.04) 4px, rgba(0,0,0,0.04) 8px); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1); }
         .style-metal .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid var(--theme); margin-bottom: 8px; color: var(--theme); font-weight: bold;}
+        .style-metal .attr-card .value { color: var(--theme); }
         .style-metal .portrait-container { border: 3px solid var(--theme); background: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0, rgba(0,0,0,0.02) 10px, transparent 10px, transparent 20px); box-shadow: inset 0 0 15px rgba(0,0,0,0.2); }
         .style-metal .tag { background: #333; color: #fff; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.2); }
         .style-metal .val-tag { color: var(--theme); border-color: var(--theme);}
         .style-metal .layer-tag { background: linear-gradient(180deg, #666, #333); color: #fff; border: 1px solid #000; }
 
         /* 5. 赛博发光 (Cyber) */
-        .style-cyber .content-box { background: rgba(12, 12, 18, 0.9); border: 1px solid var(--theme); box-shadow: 0 0 8px var(--theme), inset 0 0 20px rgba(0,0,0,0.8); }
+        .style-cyber .content-box { background: rgba(12, 12, 18, 0.9); border: 1px solid var(--theme); box-shadow: 0 0 8px var(--theme), inset 0 0 20px rgba(0,0,0,0.8); color: #e0e0e0; }
         .style-cyber .header { border-bottom: 2px solid var(--theme); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .style-cyber .header h1 { text-shadow: 2px 2px 0px var(--theme), -2px -2px 0px #0ff; letter-spacing: 4px; font-style: italic; }
+        .style-cyber .header h1 { color: #fff; text-shadow: 2px 2px 0px var(--theme), -2px -2px 0px #0ff; letter-spacing: 4px; font-style: italic; }
         .style-cyber .header h2 { color: var(--theme); text-shadow: 0 0 8px var(--theme); }
         .style-cyber .race { background: var(--theme); color: #000; font-style: italic; font-weight: 900; box-shadow: 0 0 10px var(--theme); }
-        .style-cyber .data-table td { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .style-cyber .data-table td { color: #ccc; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .style-cyber .data-table td:first-child { color: var(--theme); text-shadow: 0 0 5px var(--theme); }
         .style-cyber .skill-title { background: var(--theme); color: #000; font-weight: 900; font-style: italic; box-shadow: 0 0 10px var(--theme); border-left: 6px solid #fff; }
         .style-cyber .attr-card { padding: 10px; text-align: center; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 0 10px var(--theme); }
         .style-cyber .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.2); margin-bottom: 8px; color: #fff; text-shadow: 0 0 5px var(--theme); font-weight: bold;}
+        .style-cyber .attr-card .value { color: var(--theme); text-shadow: 0 0 10px var(--theme); }
         .style-cyber .portrait-container { border: 2px solid var(--theme); background: rgba(0,0,0,0.6); box-shadow: 0 0 15px var(--theme); }
+        .style-cyber .story-section, .style-cyber .skill-desc { color: #e0e0e0; }
         .style-cyber .tag { background: transparent; color: var(--theme); border: 1px solid var(--theme); box-shadow: 0 0 5px var(--theme); }
         .style-cyber .val-tag { color: #fff; text-shadow: 0 0 5px var(--theme); border-bottom-color: var(--theme); }
         .style-cyber .layer-tag { background: var(--theme); color: #000; text-shadow: none; border-color: #000; }
 
         /* 6. 奢华暗金 (Luxury) */
-        .style-luxury .content-box { background: rgba(18, 18, 18, 0.95); border: 1px solid var(--theme); box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .style-luxury .content-box { background: rgba(18, 18, 18, 0.95); border: 1px solid var(--theme); box-shadow: 0 10px 40px rgba(0,0,0,0.6); color: #e4e4e4; }
         .style-luxury .content-box::after { content:''; position:absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; border: 1px solid var(--theme); opacity: 0.35; pointer-events: none; }
         .style-luxury .header { border-bottom: none; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding-bottom: 10px;}
         .style-luxury .header::before { content:''; width: 80%; height: 1px; background: linear-gradient(90deg, transparent, var(--theme), transparent); margin-bottom: 15px; }
         .style-luxury .header::after { content:''; width: 80%; height: 1px; background: linear-gradient(90deg, transparent, var(--theme), transparent); margin-top: 15px; }
-        .style-luxury .header h1 { font-weight: normal; text-shadow: 0 0 20px rgba(255,255,255,0.1); letter-spacing: 5px;}
+        .style-luxury .header h1 { font-weight: normal; color: var(--theme); text-shadow: 0 0 20px rgba(255,255,255,0.1); letter-spacing: 5px;}
         .style-luxury .header h2 { font-weight: normal; color: var(--theme); letter-spacing: 4px;}
         .style-luxury .race { background: transparent; color: var(--theme); border: 1px solid var(--theme); font-weight: normal; margin-top: 10px;}
-        .style-luxury .data-table td { border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .style-luxury .data-table td { color: #d8d8d8; border-bottom: 1px solid rgba(255,255,255,0.06); }
         .style-luxury .data-table td:first-child { color: var(--theme); font-weight: normal; letter-spacing: 1px;}
         .style-luxury .skill-title { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); color: var(--theme); text-align: center; border-top: 1px solid var(--theme); border-bottom: 1px solid var(--theme); justify-content: center; gap: 20px;}
         .style-luxury .attr-card { padding: 10px; text-align: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
         .style-luxury .attr-card .label { display: block; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; color: var(--theme); font-weight: normal;}
+        .style-luxury .attr-card .value { color: #fff; text-shadow: 0 0 10px var(--theme); }
         .style-luxury .portrait-container { border: none; padding: 12px; background: rgba(10,10,10,0.8); position: relative; }
         .style-luxury .portrait-container::before { content:''; position:absolute; top: 0; left: 0; width: 100%; height: 100%; border: 1px solid var(--theme); box-sizing: border-box; opacity: 0.6; pointer-events: none;}
         .style-luxury .portrait-container::after { content:''; position:absolute; top: 6px; left: 6px; width: calc(100% - 12px); height: calc(100% - 12px); border: 1px solid var(--theme); box-sizing: border-box; opacity: 0.3; pointer-events: none;}
-        .style-luxury .story-section, .style-luxury .skill-desc { line-height: 2.0; }
+        .style-luxury .story-section, .style-luxury .skill-desc { color: #e4e4e4; line-height: 2.0; }
         .style-luxury .tag { background: rgba(255,255,255,0.1); color: var(--theme); border: 1px solid var(--theme); font-weight: normal;}
         .style-luxury .val-tag { color: #fff; text-shadow: 0 0 5px var(--theme); border-bottom-color: var(--theme); }
         .style-luxury .layer-tag { background: var(--theme); color: #000; text-shadow: none; border-color: #000; font-weight: normal;}
@@ -448,16 +454,6 @@
                 
                 <div class="color-workbench">
                     <div class="wb-stack">
-                        <div class="wb-layer wb-layer-4" :style="{ backgroundColor: wbText }">
-                            <div class="wb-title">全局文本色</div>
-                            <div class="wb-controls">
-                                <input type="text" v-model="wbText" class="wb-input-hex" @change="syncTheme" maxlength="7">
-                                <input type="color" v-model="wbText" class="color-mini" @input="syncTheme">
-                            </div>
-                        </div>
-                        <div class="swap-wrapper">
-                            <button class="swap-btn" @click="swapColors('wbText', 'wbAccent')" title="互换颜色">⇅</button>
-                        </div>
                         <div class="wb-layer wb-layer-3" :style="{ backgroundColor: wbAccent }">
                             <div class="wb-title">重点装饰色</div>
                             <div class="wb-controls">
@@ -491,7 +487,6 @@
                 <div class="preset-tabs" style="margin-top: 32px;">
                     <button type="button" class="tab-btn" :class="{active: activeTab === 'guofeng'}" @click="activeTab = 'guofeng'">中国传统色</button>
                     <button type="button" class="tab-btn" :class="{active: activeTab === 'gemstone'}" @click="activeTab = 'gemstone'">宝石系列</button>
-                                        
                 </div>
                 <div class="preset-grid-v2" v-show="activeTab === 'guofeng'">
                     <div class="preset-card" v-for="p in presetsGuofeng" :key="p.name" @click="applyPreset(p)">
@@ -642,7 +637,21 @@
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>基础档案</h3></div>
+                <div class="form-header">
+                    <h3>基础档案</h3>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <div style="display:flex; gap:4px; align-items:center;" title="标题和姓名颜色">
+                            <span style="font-size:12px;color:var(--apple-text-secondary);">姓名栏</span>
+                            <input type="text" v-model="sectionColors.header" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                            <input type="color" v-model="sectionColors.header" class="color-mini" style="width:24px;height:24px;">
+                        </div>
+                        <div style="display:flex; gap:4px; align-items:center;" title="基础资料和立绘框颜色">
+                            <span style="font-size:12px;color:var(--apple-text-secondary);">档案栏</span>
+                            <input type="text" v-model="sectionColors.baseInfo" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                            <input type="color" v-model="sectionColors.baseInfo" class="color-mini" style="width:24px;height:24px;">
+                        </div>
+                    </div>
+                </div>
                 <div class="grid-2">
                     <div><label>姓名</label><input type="text" v-model="char.name"></div>
                     <div><label>罗马音/英文</label><input type="text" v-model="char.enName"></div>
@@ -661,7 +670,13 @@
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>核心属性</h3></div>
+                <div class="form-header">
+                    <h3>核心属性</h3>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" v-model="sectionColors.coreAttrs" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                        <input type="color" v-model="sectionColors.coreAttrs" class="color-mini" style="width:24px;height:24px;">
+                    </div>
+                </div>
                 <div class="grid-4">
                     <div v-for="(attr, index) in attrs" :key="index">
                         <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 8px;">
@@ -671,7 +686,13 @@
             </div>
 
             <div class="form-group" v-if="effects.trpg">
-                <div class="form-header"><h3 style="color:var(--apple-success)">扩展属性</h3></div>
+                <div class="form-header">
+                    <h3 style="color:var(--apple-success)">扩展属性</h3>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" v-model="sectionColors.trpgAttrs" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                        <input type="color" v-model="sectionColors.trpgAttrs" class="color-mini" style="width:24px;height:24px;">
+                    </div>
+                </div>
                 <div class="grid-4">
                     <div v-for="(attr, index) in trpgAttrs" :key="index">
                         <input type="text" v-model="attr.label" placeholder="属性名" style="margin-bottom: 8px;">
@@ -681,12 +702,24 @@
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>外貌描绘</h3></div>
+                <div class="form-header">
+                    <h3>外貌描绘</h3>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" v-model="sectionColors.appearance" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                        <input type="color" v-model="sectionColors.appearance" class="color-mini" style="width:24px;height:24px;">
+                    </div>
+                </div>
                 <textarea v-model="char.appearance" placeholder="在此输入角色的外貌特征..."></textarea>
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>背景</h3></div>
+                <div class="form-header">
+                    <h3>背景</h3>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" v-model="sectionColors.background" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                        <input type="color" v-model="sectionColors.background" class="color-mini" style="width:24px;height:24px;">
+                    </div>
+                </div>
                 <textarea v-model="story" placeholder="在此输入背景设定，自动换行..."></textarea>
             </div>
 
@@ -719,7 +752,13 @@
             </div>
 
             <div class="form-group">
-                <div class="form-header"><h3>附加资料集</h3></div>
+                <div class="form-header">
+                    <h3>附加资料集</h3>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" v-model="sectionColors.gallery" class="wb-input-hex" maxlength="7" style="width:60px;height:24px;padding:0 4px;font-size:12px;">
+                        <input type="color" v-model="sectionColors.gallery" class="color-mini" style="width:24px;height:24px;">
+                    </div>
+                </div>
                 <div v-for="(img, index) in gallery" :key="index" class="item-edit-box">
                     <div class="item-head">
                         <span>图集 {{ index + 1 }}</span>
@@ -741,7 +780,7 @@
                     'texture-' + (effects.bgTexture || 'none'),
                     {'bg-gradient': effects.gradient}
                  ]"
-                 :style="{ '--theme': theme.primary, '--bg': theme.bg, '--text-color': theme.text, '--bg-dark': computedDarkBg, '--bg-current': effects.gradient ? computedDarkBg : theme.bg }">
+                 :style="{ '--theme': theme.primary, '--bg': theme.bg, '--bg-dark': computedDarkBg, '--bg-current': effects.gradient ? computedDarkBg : theme.bg }">
                 
                 <div v-for="(st, idx) in stickers" :key="st.id" 
                      class="draggable-sticker" 
@@ -758,7 +797,7 @@
                     <ornament-layer :effects="effects"></ornament-layer>
 
                     <div class="section-block">
-                        <div class="header">
+                        <div class="header" :style="{ '--theme': sectionColors.header || storyColor }">
                             <h1>{{ char.name || '角色名字' }}</h1>
                             <div class="race">
                                 <span v-if="char.enName && char.enName.trim()">{{ char.enName }} / </span>
@@ -768,13 +807,13 @@
 
                         <div :class="['info-layout', 'layout-' + (effects.layoutMode || 'left')]">
                             <div class="portrait-area">
-                                <div class="portrait-container content-box">
+                                <div class="portrait-container content-box" :style="{ '--theme': sectionColors.baseInfo || storyColor }">
                                     <img v-if="char.avatar" :src="char.avatar" alt="立绘">
                                     <span v-else>未上传立绘</span>
                                 </div>
                             </div>
 
-                            <div class="stats-area">
+                            <div class="stats-area" :style="{ '--theme': sectionColors.baseInfo || storyColor }">
                                 <table class="data-table">
                                     <tr><td>种族</td><td>{{ char.race }}</td></tr>
                                     <tr><td>年龄</td><td>{{ char.age }}</td></tr>
@@ -791,19 +830,19 @@
                         </div>
 
                         <div :class="['combined-attr-grid', effects.trpg ? 'twelve-items' : 'four-items']">
-                            <div class="attr-card content-box" v-for="attr in combinedAttrs" :key="attr.label">
+                            <div class="attr-card content-box" v-for="attr in combinedAttrs" :key="attr.label" :style="{ '--theme': attr.color }">
                                 <span class="label">{{ attr.label }}</span>
                                 <span class="value">{{ attr.val || '0' }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="section-block" v-if="char.appearance && char.appearance.trim()" :style="{ '--theme': storyColor }">
+                    <div class="section-block" v-if="char.appearance && char.appearance.trim()" :style="{ '--theme': sectionColors.appearance || storyColor }">
                         <div class="header" style="justify-content: flex-start;"><h2>外貌 / APPEARANCE</h2></div>
                         <div class="story-section content-box">{{ char.appearance }}</div>
                     </div>
 
-                    <div class="section-block" v-if="story && story.trim()" :style="{ '--theme': storyColor }">
+                    <div class="section-block" v-if="story && story.trim()" :style="{ '--theme': sectionColors.background || storyColor }">
                         <div class="header" style="justify-content: flex-start;"><h2>背景 / BACKGROUND</h2></div>
                         <div class="story-section content-box">{{ story }}</div>
                     </div>
@@ -826,12 +865,12 @@
                         </div>
                     </div>
 
-                    <div class="section-block" v-show="gallery && gallery.length > 0">
-                        <div class="header" style="justify-content: flex-start;" :style="{ '--theme': storyColor }">
-                            <h2 :style="{ color: storyColor }">图集 / GALLERY</h2>
+                    <div class="section-block" v-show="gallery && gallery.length > 0" :style="{ '--theme': sectionColors.gallery || storyColor }">
+                        <div class="header" style="justify-content: flex-start;" :style="{ '--theme': sectionColors.gallery || storyColor }">
+                            <h2 :style="{ color: sectionColors.gallery || storyColor }">图集 / GALLERY</h2>
                         </div>
                         <div class="gallery-grid">
-                            <div class="gallery-item content-box" v-for="(item, index) in gallery" :key="index" :style="{ '--theme': storyColor }">
+                            <div class="gallery-item content-box" v-for="(item, index) in gallery" :key="index" :style="{ '--theme': sectionColors.gallery || storyColor }">
                                 <div class="gallery-img-box">
                                     <img v-if="item.url" :src="item.url" alt="图集图片">
                                     <span v-else style="color:#aaa; font-size: 14px;">未上传图片</span>
@@ -965,7 +1004,7 @@
             return {
                 isLoading: true, loadingProgress: 0, isPreview: false, isExporting: false, editorScrollY: 0, activeTab: 'guofeng', importText: '', 
                 texNoise: generateNoiseTexture(), texGrid: generateGridTexture(), texDots: generateDotsTexture(),
-                wbBg: '#ffffff', wbPrimary: '#000000', wbAccent: '#000000', wbText: '#333333',
+                wbBg: '#ffffff', wbPrimary: '#000000', wbAccent: '#000000',
                 effects: {
                     gradient: false, trpg: false,
                     ornament: 'none', starPointCount: 5,
@@ -974,6 +1013,15 @@
                     globalStyle: 'modern', 
                     avatarShape: 'rect', 
                     bgTexture: 'none'
+                },
+                sectionColors: {
+                    header: '',
+                    baseInfo: '',
+                    coreAttrs: '',
+                    trpgAttrs: '',
+                    appearance: '',
+                    background: '',
+                    gallery: ''
                 },
                 presetsGuofeng: [
                     { name: '明月石榴', colors:['#D3D4CD', '#B3392F'] }, { name: '雪青紫罗', colors:['#BDB5D7', '#7356B1'] }, { name: '萱草松绿', colors:['#C29E64', '#4C7543'] },
@@ -995,8 +1043,7 @@
                     { name: '花悦梦意', colors:['#81CDD0', '#6043A8', '#253553'] },
                     { name: '黄昏玫瑰', colors:['#E5BEEF', '#697FFF', '#F39872'] }
                 ],
-
-                theme: { bg: '#ffffff', primary: '#000000', text: '#333333' }, storyColor: "#000000",
+                theme: { bg: '#ffffff', primary: '#000000' }, storyColor: "#000000",
                 char: { name: '', enName: '', race: '', gender: '', age: '', height: '', weight: '', personality: '', likes: '', dislikes: '', weapon: '', profession: '', atk: '', appearance: '', avatar: '' },
                 attrs:[ { label: '生命', val: '' }, { label: '力量', val: '' }, { label: '速度', val: '' }, { label: '幸运', val: '' } ],
                 trpgAttrs:[ { label: '理智', val: '' }, { label: '智慧', val: '' }, { label: '魅力', val: '' }, { label: '敏捷', val: '' }, { label: '搏斗', val: '' }, { label: '话术', val: '' }, { label: '技巧', val: '' }, { label: '感知', val: '' } ],
@@ -1048,7 +1095,13 @@
                 r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
                 return '#' + (g | (b << 8) | (r << 16)).toString(16).padStart(6, '0');
             },
-            combinedAttrs() { if (this.effects.trpg) { return[...this.attrs, ...this.trpgAttrs]; } return this.attrs; },
+            combinedAttrs() { 
+                let arr = this.attrs.map(a => ({...a, color: this.sectionColors.coreAttrs || this.storyColor}));
+                if (this.effects.trpg) { 
+                    arr = arr.concat(this.trpgAttrs.map(a => ({...a, color: this.sectionColors.trpgAttrs || this.storyColor}))); 
+                } 
+                return arr; 
+            },
             textureStyle() {
                 if (this.effects.bgTexture === 'noise') return { backgroundImage: 'url(' + this.texNoise + ')' };
                 if (this.effects.bgTexture === 'grid') return { backgroundImage: 'url(' + this.texGrid + ')' };
@@ -1071,7 +1124,8 @@
             char: { handler() { this.saveData(); }, deep: true }, attrs: { handler() { this.saveData(); }, deep: true },
             trpgAttrs: { handler() { this.saveData(); }, deep: true }, story: { handler() { this.saveData(); } },
             skills: { handler() { this.saveData(); }, deep: true }, gallery: { handler() { this.saveData(); }, deep: true },
-            effects: { handler() { this.saveData(); }, deep: true }, stickers: { handler() { this.saveData(); }, deep: true }
+            effects: { handler() { this.saveData(); }, deep: true }, stickers: { handler() { this.saveData(); }, deep: true },
+            sectionColors: { handler() { this.saveData(); }, deep: true }
         },
         methods: {
             parseTemplate() {
@@ -1109,33 +1163,18 @@
                 alert('文本识别导入完成！'); this.importText = ''; 
             },
             swapColors(key1, key2) { const temp = this[key1]; this[key1] = this[key2]; this[key2] = temp; this.syncTheme(); },
-            applyPreset(preset) { 
-                this.wbBg = preset.colors[0]; 
-                this.wbPrimary = preset.colors[1]; 
-                this.wbAccent = preset.colors[2] || preset.colors[1]; 
-                
-                // 智能适配：基于背景明暗度自动切换全局文本色为亮色或暗色
-                let bgHex = this.wbBg.replace('#', '');
-                if(bgHex.length === 3) bgHex = bgHex.split('').map(c => c+c).join('');
-                let r = parseInt(bgHex.substr(0,2), 16);
-                let g = parseInt(bgHex.substr(2,2), 16);
-                let b = parseInt(bgHex.substr(4,2), 16);
-                let yiq = ((r*299) + (g*587) + (b*114)) / 1000;
-                this.wbText = (yiq >= 128) ? '#333333' : '#F5F5F7';
-                
-                this.syncTheme(); 
-            },
+            applyPreset(preset) { this.wbBg = preset.colors[0]; this.wbPrimary = preset.colors[1]; this.wbAccent = preset.colors[2] || preset.colors[1]; this.syncTheme(); },
             syncTheme() { 
                 this.theme.bg = this.wbBg; 
                 this.theme.primary = this.wbPrimary; 
-                this.theme.text = this.wbText;
                 this.storyColor = this.wbAccent; 
                 this.skills.forEach(skill => { skill.color = this.wbAccent; }); 
+                Object.keys(this.sectionColors).forEach(k => { this.sectionColors[k] = this.wbAccent; });
                 window._particleAccentHex = this.wbAccent; 
                 this.saveData(); 
             },
             saveData() {
-                const dataToSave = { wbBg: this.wbBg, wbPrimary: this.wbPrimary, wbAccent: this.wbAccent, wbText: this.wbText, char: this.char, attrs: this.attrs, trpgAttrs: this.trpgAttrs, story: this.story, skills: this.skills, gallery: this.gallery, effects: this.effects, stickers: this.stickers };
+                const dataToSave = { wbBg: this.wbBg, wbPrimary: this.wbPrimary, wbAccent: this.wbAccent, char: this.char, attrs: this.attrs, trpgAttrs: this.trpgAttrs, story: this.story, skills: this.skills, gallery: this.gallery, effects: this.effects, stickers: this.stickers, sectionColors: this.sectionColors };
                 try { localStorage.setItem('charCardGeneratorData_ImgVer', JSON.stringify(dataToSave)); } catch (e) { }
             },
             loadData() {
@@ -1143,15 +1182,11 @@
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
-                        if(parsed.wbBg) { 
-                            this.wbBg = parsed.wbBg; this.wbPrimary = parsed.wbPrimary; this.wbAccent = parsed.wbAccent; 
-                            this.wbText = parsed.wbText || '#333333';
-                            this.theme.bg = this.wbBg; this.theme.primary = this.wbPrimary; this.theme.text = this.wbText; 
-                            this.storyColor = this.wbAccent; 
-                        }
+                        if(parsed.wbBg) { this.wbBg = parsed.wbBg; this.wbPrimary = parsed.wbPrimary; this.wbAccent = parsed.wbAccent; this.theme.bg = this.wbBg; this.theme.primary = this.wbPrimary; this.storyColor = this.wbAccent; }
                         if(parsed.char) this.char = parsed.char; if(parsed.attrs) this.attrs = parsed.attrs; if(parsed.trpgAttrs) this.trpgAttrs = parsed.trpgAttrs;
                         if(parsed.story !== undefined) this.story = parsed.story; if(parsed.skills) this.skills = parsed.skills; if(parsed.gallery) this.gallery = parsed.gallery;
                         if(parsed.stickers) { this.stickers = parsed.stickers.map(st => ({ ...st, rotate: st.rotate || 0 })); }
+                        if(parsed.sectionColors) { this.sectionColors = { ...this.sectionColors, ...parsed.sectionColors }; }
                         if(parsed.effects) {
                             this.effects.gradient = parsed.effects.gradient || false;
                             this.effects.trpg = parsed.effects.trpg || false;
