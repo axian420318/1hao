@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>主页</title>
+    <title>群相册主页</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.js"></script>
     <style>
         :root {
@@ -58,7 +58,8 @@
         .search-box input::placeholder { color: #AAB7B7; }
         .search-box button { background: transparent; border: none; padding: 0; cursor: pointer; color: #AAB7B7; font-size: 14px; }
         .search-box button:hover { color: var(--accent); }
-        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .nav-right { display: flex; align-items: center; gap: 16px; }
+        
         .user-badge {
             display: flex; align-items: center; gap: 8px; cursor: pointer;
             background: #F0F4F4; padding: 4px 12px 4px 4px;
@@ -66,6 +67,10 @@
         }
         .user-badge:hover { background: #E4EBEB; }
         .user-badge span { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+        .msg-btn { position: relative; cursor: pointer; font-size: 18px; color: var(--text-secondary); transition: 0.2s; display: flex; align-items: center;}
+        .msg-btn:hover { color: var(--accent); transform: scale(1.1); }
+        .unread-dot { position: absolute; top: -6px; right: -8px; background: var(--danger); color: white; font-size: 10px; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 2px solid white; line-height: 1;}
 
         button {
             padding: 8px 18px; border-radius: 980px; font-size: 13px; font-weight: 600;
@@ -94,20 +99,34 @@
         .avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: #EEE; cursor: pointer; transition: transform 0.2s; }
         .avatar-sm:hover { transform: scale(1.1); }
         .avatar-lg { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #FFF; box-shadow: var(--shadow-sm); flex-shrink: 0; }
-        .tag-badge { background: #E4EBEB; color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 6px; display: inline-block; }
+        
+        .tag-badge { background: #E4EBEB; color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 6px; display: inline-block; margin-right: 6px;}
+        .board-badge { background: #FFF4E5; color: #FF9800; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 6px; display: inline-block; margin-right: 6px;}
 
-        .container { max-width: 1200px; margin: 80px auto 40px; padding: 0 2% 80px; }
+        .category-bar {
+            max-width: 1200px; margin: 80px auto 10px; padding: 0 2%;
+            display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none;
+        }
+        .category-bar::-webkit-scrollbar { display: none; }
+        .cat-chip {
+            padding: 8px 18px; border-radius: 980px; font-size: 14px; font-weight: 600; cursor: pointer;
+            background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); transition: 0.3s; white-space: nowrap; box-shadow: var(--shadow-sm);
+        }
+        .cat-chip:hover { border-color: var(--accent); color: var(--accent); }
+        .cat-chip.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(130, 194, 189, 0.3); }
+
+        .container { max-width: 1200px; margin: 20px auto 40px; padding: 0 2% 80px; }
         .profile-header {
             background: var(--surface); padding: 30px; border-radius: var(--radius-lg);
             display: flex; align-items: center; gap: 24px; margin-bottom: 30px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-sm); margin-top: 80px;
         }
         .profile-info { flex: 1; }
         .profile-info h2 { margin: 0 0 6px 0; font-size: 20px; display: flex; align-items: center; gap: 10px; color: var(--text-primary); }
         .profile-info p { margin: 0 0 6px 0; color: var(--text-secondary); font-size: 13px; }
         .profile-info .bio { color: var(--text-primary); font-size: 14px; margin-top: 6px; }
         .badge-admin { background: #FFF4E5; color: #FF9800; font-size: 11px; padding: 2px 8px; border-radius: 6px; }
-        .profile-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .profile-actions { display: flex; gap: 10px; flex-wrap: wrap; flex-direction: column; align-items: flex-end;}
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .section-title { font-size: 16px; margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
@@ -161,16 +180,16 @@
         .btn-text.danger:hover { color: var(--danger); }
         .btn-text.liked { color: var(--danger); }
 
-        .detail-view { background: var(--surface); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); max-width: 800px; margin: 0 auto; }
+        .detail-view { background: var(--surface); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); max-width: 800px; margin: 80px auto 0; }
         .detail-back { display: inline-flex; align-items: center; gap: 6px; color: var(--text-secondary); cursor: pointer; font-size: 14px; margin-bottom: 20px; transition: 0.2s; }
         .detail-back:hover { color: var(--accent); }
         .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .detail-title { font-size: 24px; font-weight: 700; margin: 0 0 10px 0; }
-        .detail-meta { display: flex; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 13px; margin-top: 8px; }
+        .detail-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: var(--text-secondary); font-size: 13px; margin-top: 8px; }
         .detail-images { display: flex; flex-direction: column; gap: 16px; margin-bottom: 30px; }
         .detail-img { width: 100%; border-radius: var(--radius-md); object-fit: contain; background: #F4F7F6; max-height: 600px; cursor: pointer; }
         .detail-content { font-size: 15px; line-height: 1.8; color: var(--text-primary); white-space: pre-wrap; margin-bottom: 40px; }
-        .detail-actions { display: flex; justify-content: center; align-items: center; padding-bottom: 30px; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        .detail-actions { display: flex; justify-content: center; align-items: center; padding-bottom: 30px; border-bottom: 1px solid var(--border); margin-bottom: 30px; flex-wrap: wrap; gap: 16px;}
         .btn-big-like {
             display: flex; align-items: center; gap: 10px; padding: 12px 30px; font-size: 16px; border-radius: 980px;
             background: #F0F4F4; color: var(--text-secondary); border: 2px solid transparent; transition: 0.3s;
@@ -186,14 +205,33 @@
         }
         .comment-input-box textarea:focus { border-color: var(--accent); }
         .comment-input-box button { align-self: flex-end; }
+        
+        /* 评论与楼中楼样式 */
         .comment-list { display: flex; flex-direction: column; gap: 20px; }
-        .comment-item { display: flex; gap: 12px; }
+        .comment-item { display: flex; gap: 12px; position: relative;}
         .comment-body { flex: 1; background: #F9FBFA; padding: 12px 16px; border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md); }
         .comment-meta { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
         .comment-author { font-weight: 600; color: var(--text-primary); cursor: pointer; transition: 0.2s; }
         .comment-author:hover { color: var(--accent); }
         .comment-time { color: var(--text-secondary); }
         .comment-text { font-size: 14px; line-height: 1.5; margin: 0; white-space: pre-wrap; }
+        
+        .mention-text { color: var(--accent); font-weight: 600; cursor: pointer; padding: 0 2px; }
+
+        .sub-comments {
+            margin-top: 12px; padding: 10px 14px; background: rgba(0,0,0,0.025);
+            border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px;
+        }
+        .sub-comment-item { display: flex; gap: 10px; }
+        .sub-avatar { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; object-fit: cover;}
+        .sub-body { flex: 1; font-size: 13px; }
+        .sub-meta { display: flex; justify-content: space-between; margin-bottom: 4px; align-items: center;}
+        .sub-text { margin: 0; line-height: 1.5; color: var(--text-primary); white-space: pre-wrap; }
+        
+        .reply-box { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .reply-box textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px; outline: none; resize: none; font-family: inherit;}
+        .reply-box textarea:focus { border-color: var(--accent); }
+        .reply-box-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
@@ -207,24 +245,25 @@
         }
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .modal-content.large { max-width: 480px; }
+        .modal-content.msg-box { padding: 0; display: flex; flex-direction: column; height: 75vh; }
         .modal-content h3 { margin: 0 0 24px 0; font-size: 18px; text-align: center; color: var(--text-primary); }
 
         .btn-close {
             position: absolute; top: 16px; right: 16px; background: #F0F4F4; color: #AAB7B7;
             width: 32px; height: 32px; border-radius: 50%; padding: 0;
-            display: flex; justify-content: center; align-items: center; font-size: 16px; z-index: 10;
+            display: flex; justify-content: center; align-items: center; font-size: 16px; z-index: 10; border: none; cursor: pointer;
         }
         .btn-close:hover { background: #E4EBEB; color: var(--text-primary); }
 
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
-        .form-group input[type="text"], .form-group input[type="password"], .form-group textarea {
+        .form-group input[type="text"], .form-group input[type="password"], .form-group textarea, .form-group select {
             width: 100%; padding: 12px 14px; background: #F4F7F7;
             border: 1px solid transparent; border-radius: var(--radius-md);
-            color: var(--text-primary); font-family: inherit; font-size: 14px; transition: all 0.3s;
+            color: var(--text-primary); font-family: inherit; font-size: 14px; transition: all 0.3s; outline: none;
         }
-        .form-group input:focus, .form-group textarea:focus {
-            outline: none; border-color: var(--accent); background: #FFF; box-shadow: 0 0 0 4px rgba(130,194,189,0.1);
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--accent); background: #FFF; box-shadow: 0 0 0 4px rgba(130,194,189,0.1);
         }
         .upload-previews { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         .preview-item {
@@ -244,15 +283,26 @@
         .empty-state h3 { color: var(--text-primary); font-size: 16px; margin-bottom: 8px; }
         .loader { text-align: center; padding: 30px; color: var(--accent); font-size: 14px; font-weight: 600; }
 
+        /* 聊天UI */
+        .chat-list { display: flex; flex-direction: column; gap: 10px; padding: 16px; overflow-y: auto; flex: 1;}
+        .chat-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #F9FBFA; border-radius: var(--radius-md); cursor: pointer; transition: 0.2s; }
+        .chat-item:hover { background: #F0F4F4; }
+        .chat-item.unread { border-left: 4px solid var(--accent); }
+        .chat-window { display: flex; flex-direction: column; height: 100%; }
+        .chat-msgs { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .msg-bubble { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word;}
+        .msg-mine { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
+        .msg-theirs { align-self: flex-start; background: #F0F4F4; color: var(--text-primary); border-bottom-left-radius: 2px; }
+        .chat-input-area { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); background: #FFF;}
+
         @media (max-width: 600px) {
             .navbar { padding: 0 16px; }
             .nav-left h2 span { display: none; }
             .search-box input { width: 110px; }
-            .search-box input:focus { width: 150px; }
+            .search-box input:focus { width: 130px; }
             .user-badge span { display: none; }
-
-            .container { padding: 0 12px 80px; margin-top: 70px; }
-
+            .container { padding: 0 12px 80px; margin-top: 20px; }
+            .category-bar { margin-top: 70px; padding: 0 12px; }
             .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .grid.list-view .card { height: 120px; }
             .grid.list-view .card-img-wrapper { width: 100px; }
@@ -261,15 +311,12 @@
             .card-desc { font-size: 12px; -webkit-line-clamp: 1; }
             .author-name { font-size: 11px; }
             .avatar-sm { width: 20px; height: 20px; }
-
-            .profile-header { flex-direction: column; text-align: center; padding: 24px 16px; gap: 16px; }
-            .profile-actions { justify-content: center; }
+            .profile-header { flex-direction: column; text-align: center; padding: 24px 16px; gap: 16px; margin-top: 70px;}
+            .profile-actions { align-items: center; width: 100%;}
             .fab-post { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 24px; }
             .modal-content { padding: 24px 20px; }
-
-            .detail-view { padding: 16px; }
+            .detail-view { padding: 16px; margin-top: 70px;}
             .detail-title { font-size: 20px; }
-            .detail-actions { flex-wrap: wrap; gap: 10px; }
         }
     </style>
 </head>
@@ -285,6 +332,10 @@
         </div>
         <div class="nav-right">
             <template v-if="currentUser">
+                <!-- 消息铃铛 -->
+                <div class="msg-btn" @click="openMessageModal" title="消息中心">
+                    🔔<span class="unread-dot" v-if="totalUnread > 0">{{ totalUnread > 99 ? '99+' : totalUnread }}</span>
+                </div>
                 <div class="user-badge" @click="goToMyProfile">
                     <img :src="currentUser.avatar_url" class="avatar-sm">
                     <span>{{ currentUser.nickname }}</span>
@@ -295,6 +346,14 @@
             </template>
         </div>
     </nav>
+
+    <!-- 主页专属：板块分类栏 (去除Emoji，加卡字) -->
+    <div class="category-bar" v-if="view === 'home'">
+        <div class="cat-chip" :class="{active: currentCategory === ''}" @click="setCategory('')">全部内容</div>
+        <div class="cat-chip" :class="{active: currentCategory === 'player-characters'}" @click="setCategory('player-characters')">玩家角色卡</div>
+        <div class="cat-chip" :class="{active: currentCategory === 'npc-characters'}" @click="setCategory('npc-characters')">NPC角色卡</div>
+        <div class="cat-chip" :class="{active: currentCategory === 'items'}" @click="setCategory('items')">道具卡</div>
+    </div>
 
     <button class="fab-post" v-if="currentUser && view !== 'post_detail'" @click="openPostModal" title="发帖分享">＋</button>
 
@@ -308,7 +367,7 @@
             <div class="empty-state" v-if="posts.length === 0 && !isLoading">
                 <h3>🍃 这里空空如也</h3>
                 <p v-if="searchKeyword">没有找到与 "{{ searchKeyword }}" 相关的帖子</p>
-                <p v-else>还没有人分享过角色卡，快来做第一个吧！</p>
+                <p v-else>该板块还没有人分享内容，快来做第一个吧！</p>
             </div>
 
             <div class="grid" v-else>
@@ -319,6 +378,7 @@
                     </div>
                     <div class="card-body">
                         <div>
+                            <span class="board-badge" v-if="getPostBoardName(post)">{{ getPostBoardName(post) }}</span>
                             <span class="tag-badge" v-if="post.tag">{{ post.tag }}</span>
                         </div>
                         <h3 class="card-title">{{ post.title || '无标题' }}</h3>
@@ -356,9 +416,14 @@
                     <p>QQ号 / ID：{{ targetProfile.qq_number }}</p>
                     <div class="bio">{{ targetProfile.bio || '这个人很懒，什么都没有留下~' }}</div>
                 </div>
-                <div class="profile-actions" v-if="currentUser && currentUser.qq_number === targetProfile.qq_number">
-                    <button class="btn-outline" @click="openEditProfile">修改资料</button>
-                    <button class="btn-danger" @click="doLogout">退出登录</button>
+                <div class="profile-actions">
+                    <template v-if="currentUser && currentUser.qq_number === targetProfile.qq_number">
+                        <button class="btn-outline" style="width: 100%;" @click="openEditProfile">修改资料</button>
+                        <button class="btn-danger" style="width: 100%;" @click="doLogout">退出登录</button>
+                    </template>
+                    <template v-else-if="currentUser">
+                        <button class="btn-primary" style="width: 100%;" @click="startChatWith(targetProfile)">✉️ 发送私信</button>
+                    </template>
                 </div>
             </div>
             <div class="profile-header" v-else-if="!isLoading">
@@ -388,7 +453,10 @@
                         <span class="multi-pic-badge" v-if="getImages(post).length > 1">{{ getImages(post).length }}图</span>
                     </div>
                     <div class="card-body">
-                        <div><span class="tag-badge" v-if="post.tag">{{ post.tag }}</span></div>
+                        <div>
+                            <span class="board-badge" v-if="getPostBoardName(post)">{{ getPostBoardName(post) }}</span>
+                            <span class="tag-badge" v-if="post.tag">{{ post.tag }}</span>
+                        </div>
                         <h3 class="card-title">{{ post.title || '无标题' }}</h3>
                         <p class="card-desc">{{ getPostContent(post.content) }}</p>
                         <div class="card-footer">
@@ -419,7 +487,10 @@
                 <div class="detail-header">
                     <div>
                         <h1 class="detail-title">{{ currentPost.title || '无标题' }}</h1>
-                        <span class="tag-badge" v-if="currentPost.tag" style="margin-bottom: 10px;">{{ currentPost.tag }}</span>
+                        <div style="margin-bottom: 10px;">
+                            <span class="board-badge" v-if="getPostBoardName(currentPost)">{{ getPostBoardName(currentPost) }}</span>
+                            <span class="tag-badge" v-if="currentPost.tag">{{ currentPost.tag }}</span>
+                        </div>
                         <div class="detail-meta">
                             <div class="author-info" @click="goToProfile(currentPost.qq_number)" style="cursor: pointer;">
                                 <img :src="getAvatar(currentPost)" class="avatar-sm">
@@ -441,19 +512,20 @@
                     <button class="btn-big-like" :class="{ liked: isLiked(currentPost) }" @click="toggleLike(currentPost)">
                         {{ isLiked(currentPost) ? '❤️ 已赞' : '🤍 点赞' }} ({{ getLikesCount(currentPost) }})
                     </button>
+                    <!-- 管理员特权：不管是谁的帖子都能看到编辑和删除 -->
                     <template v-if="canManage(currentPost)">
-                        <button class="btn-outline" style="margin-left: 20px; border-radius: 980px; padding: 10px 24px;" @click="openEditPost(currentPost)">编辑</button>
-                        <button class="btn-danger" style="margin-left: 10px; border-radius: 980px; padding: 10px 24px;" @click="deletePost(currentPost.id, null, true)">删除</button>
+                        <button class="btn-outline" style="border-radius: 980px; padding: 10px 24px;" @click="openEditPost(currentPost)">修改内容/板块</button>
+                        <button class="btn-danger" style="border-radius: 980px; padding: 10px 24px;" @click="deletePost(currentPost.id, null, true)">删除</button>
                     </template>
                 </div>
 
                 <div class="comments-section">
-                    <h3>留言评论 ({{ getCommentsList(currentPost).length }})</h3>
+                    <h3>讨论区 ({{ getCommentsList(currentPost).length }})</h3>
 
                     <div class="comment-input-box" v-if="currentUser">
                         <img :src="currentUser.avatar_url" class="avatar-sm" @click="goToMyProfile">
-                        <textarea v-model="commentInput" rows="2" placeholder="说点什么吧..." @keyup.ctrl.enter="submitComment"></textarea>
-                        <button class="btn-primary" @click="submitComment">发布</button>
+                        <textarea v-model="commentInput" rows="2" placeholder="说点什么吧... (输入 @QQ号(昵称) 可提醒对方)" @keyup.ctrl.enter="submitComment"></textarea>
+                        <button class="btn-primary" @click="submitComment">发布留言</button>
                     </div>
                     <div class="comment-input-box" v-else style="justify-content: center; padding: 20px; background: #F0F4F4; border-radius: var(--radius-md);">
                         <span style="color: var(--text-secondary); font-size: 14px;">请先 <a href="#" @click.prevent="showLoginModal = true" style="color: var(--accent);">登录</a> 后发表评论</span>
@@ -467,7 +539,40 @@
                                     <span class="comment-author" @click="goToProfile(comment.qq_number)">{{ comment.nickname }}</span>
                                     <span class="comment-time">{{ formatTime(comment.time) }}</span>
                                 </div>
-                                <p class="comment-text">{{ comment.text }}</p>
+                                <p class="comment-text" v-html="highlightMentions(comment.text)"></p>
+                                
+                                <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                                    <button class="btn-text" @click="openReplyBox(comment, {qq: comment.qq_number, nickname: comment.nickname})">回复</button>
+                                </div>
+
+                                <!-- 楼中楼：子评论列表 -->
+                                <div class="sub-comments" v-if="comment.replies && comment.replies.length > 0">
+                                    <div class="sub-comment-item" v-for="(reply, rIdx) in comment.replies" :key="rIdx">
+                                        <img :src="reply.avatar_url" class="sub-avatar" @click="goToProfile(reply.qq_number)">
+                                        <div class="sub-body">
+                                            <div class="sub-meta">
+                                                <span class="comment-author" style="font-size: 12px;" @click="goToProfile(reply.qq_number)">{{ reply.nickname }}</span>
+                                                <span class="comment-time" style="font-size: 11px;">{{ formatTime(reply.time) }}</span>
+                                            </div>
+                                            <p class="sub-text">
+                                                <span v-if="reply.target_qq !== comment.qq_number" style="color: var(--text-secondary);">回复 <span style="color: var(--accent); cursor: pointer;" @click="goToProfile(reply.target_qq)">@{{reply.target_nickname}}</span>: </span>
+                                                <span v-html="highlightMentions(reply.text)"></span>
+                                            </p>
+                                            <div style="display: flex; justify-content: flex-end;">
+                                                <button class="btn-text" style="padding: 0; margin-top: 4px; font-size: 11px;" @click="openReplyBox(comment, {qq: reply.qq_number, nickname: reply.nickname})">回复</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 内联楼中楼回复框 -->
+                                <div class="reply-box" v-if="activeReplyId === comment.time + '_' + comment.qq_number">
+                                    <textarea v-model="replyInput" rows="2" :placeholder="'回复 @' + replyTarget.nickname + ' : (支持手动@提醒)'" @keyup.ctrl.enter="submitReply(comment)"></textarea>
+                                    <div class="reply-box-actions">
+                                        <button class="btn-text" @click="cancelReply">取消</button>
+                                        <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" @click="submitReply(comment)">发送回复</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="empty-state" v-if="getCommentsList(currentPost).length === 0" style="padding: 30px;">
@@ -479,6 +584,7 @@
         </template>
     </div>
 
+    <!-- 登录注册模态框 (原版) -->
     <div class="modal-overlay" v-if="showLoginModal" @click.self="showLoginModal = false">
         <div class="modal-content">
             <button class="btn-close" @click="showLoginModal = false">×</button>
@@ -510,10 +616,21 @@
         </div>
     </div>
 
+    <!-- 发帖模态框 -->
     <div class="modal-overlay" v-if="showPostModal" @click.self="closePostModal">
         <div class="modal-content large">
             <button class="btn-close" @click="closePostModal">×</button>
             <h3>分享帖子</h3>
+
+            <div class="form-group">
+                <label>发布板块 (必选)</label>
+                <select v-model="postForm.category">
+                    <option value="">-- 请选择合适的板块 --</option>
+                    <option value="player-characters">玩家角色卡</option>
+                    <option value="npc-characters">NPC角色卡</option>
+                    <option value="items">道具卡</option>
+                </select>
+            </div>
 
             <div class="form-group">
                 <label>选择图片 (支持多选 1~5 张)</label>
@@ -540,10 +657,22 @@
         </div>
     </div>
 
+    <!-- 修改帖子模态框 -->
     <div class="modal-overlay" v-if="showEditPostModal" @click.self="showEditPostModal = false">
         <div class="modal-content large">
             <button class="btn-close" @click="showEditPostModal = false">×</button>
             <h3>修改分享内容</h3>
+            
+            <div class="form-group">
+                <label>所属板块</label>
+                <select v-model="editPostForm.category">
+                    <option value="">-- 不指定板块 --</option>
+                    <option value="player-characters">玩家角色卡</option>
+                    <option value="npc-characters">NPC角色卡</option>
+                    <option value="items">道具卡</option>
+                </select>
+            </div>
+
             <div class="form-group"><label>标题</label><input type="text" v-model="editPostForm.title"></div>
             <div class="form-group"><label>相关标签</label><input type="text" v-model="editPostForm.tag" placeholder="例如：原神"></div>
             <div class="form-group"><label>介绍配文</label><textarea v-model="editPostForm.content" rows="6"></textarea></div>
@@ -568,6 +697,75 @@
             </button>
         </div>
     </div>
+
+    <!-- 消息中心模态框 -->
+    <div class="modal-overlay" v-if="showMsgModal" @click.self="showMsgModal = false">
+        <div class="modal-content msg-box large">
+            
+            <div style="padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #FFF; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+                <h3 style="margin: 0;">🔔 消息中心</h3>
+                <button class="btn-close" style="position: static;" @click="showMsgModal = false">×</button>
+            </div>
+
+            <!-- 聊天对话框界面 -->
+            <div v-if="activeChatTarget" class="chat-window">
+                <div style="padding: 10px 16px; background: #F0F4F4; display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-text" @click="activeChatTarget = null">← 返回</button>
+                    <span style="font-weight: 600;">与 {{ activeChatTarget.name }} 的聊天</span>
+                </div>
+                <div class="chat-msgs" id="chat-msgs-box">
+                    <div v-for="(msg, i) in currentChatMessages" :key="i" class="msg-bubble" :class="msg.from === currentUser.qq_number ? 'msg-mine' : 'msg-theirs'">
+                        {{ msg.text }}
+                        <div style="font-size: 10px; opacity: 0.7; margin-top: 4px; text-align: right;">{{ formatTime(msg.time).substring(11) }}</div>
+                    </div>
+                    <div v-if="currentChatMessages.length === 0" style="text-align:center; color:var(--text-secondary); margin-top:20px; font-size:13px;">发个招呼开始聊天吧！</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" v-model="pmInput" placeholder="输入私信内容..." @keyup.enter="sendPM" style="flex: 1; padding: 10px 14px; border-radius: 980px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                    <button class="btn-primary" @click="sendPM" style="padding: 8px 20px;">发送</button>
+                </div>
+            </div>
+
+            <!-- 列表界面 -->
+            <div v-else style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <div style="display: flex; gap: 10px; padding: 16px 16px 0;">
+                    <button class="cat-chip" :class="{active: msgTab === 'chats'}" @click="msgTab = 'chats'" style="padding: 6px 16px;">💬 私信</button>
+                    <button class="cat-chip" :class="{active: msgTab === 'notifs'}" @click="msgTab = 'notifs'; clearNotifs()" style="padding: 6px 16px;">
+                        📢 提醒 <span v-if="notifUnread > 0" style="color:var(--danger)">({{notifUnread}})</span>
+                    </button>
+                </div>
+
+                <div v-if="msgTab === 'chats'" class="chat-list">
+                    <div v-for="(chat, qq) in pmData.chats" :key="qq" class="chat-item" :class="{unread: chat.unread > 0}" @click="openChatWindow(qq, chat)">
+                        <img :src="`https://api.dicebear.com/7.x/adventurer/svg?seed=${qq}`" class="avatar-sm">
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="font-size: 14px; font-weight: 600;">{{ chat.name }}</span>
+                                <span style="font-size: 11px; color: var(--text-secondary);" v-if="chat.msgs.length">{{ formatTime(chat.msgs[chat.msgs.length-1].time).substring(5,10) }}</span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <span v-if="chat.unread > 0" style="color: var(--danger);">[{{ chat.unread }}条未读] </span>
+                                {{ chat.msgs.length > 0 ? chat.msgs[chat.msgs.length-1].text : '' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="Object.keys(pmData.chats || {}).length === 0" style="text-align:center; padding:30px; color:var(--text-secondary); font-size:13px;">暂无私信联系人</div>
+                </div>
+
+                <div v-if="msgTab === 'notifs'" class="chat-list">
+                    <div v-for="(n, idx) in pmData.notifs" :key="idx" class="chat-item" style="cursor: default; align-items: flex-start;">
+                        <span style="font-size: 18px; margin-top: 2px;">🔔</span>
+                        <div style="flex: 1;">
+                            <div style="font-size: 13px; margin-bottom: 6px; line-height: 1.5; color: var(--text-primary);" v-html="highlightMentions(n.text)"></div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">{{ formatTime(n.time) }}</div>
+                        </div>
+                    </div>
+                    <div v-if="(pmData.notifs || []).length === 0" style="text-align:center; padding:30px; color:var(--text-secondary); font-size:13px;">暂无任何通知</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -598,11 +796,17 @@ const app = Vue.createApp({
             profileViewMode: 'grid',
             searchInput: '',
             searchKeyword: '',
+            currentCategory: '', // 当前选择的板块
             currentSearchQQ: '',
             currentUser: null,
             targetProfile: null,
             currentPost: null,
+            
+            // 评论与楼中楼数据
             commentInput: '',
+            activeReplyId: null, // 当前正在回复的主评论标识
+            replyTarget: null,   // 回复的目标用户 {qq, nickname}
+            replyInput: '',      // 楼中楼回复输入框
 
             posts: [],
             page: 0,
@@ -619,19 +823,44 @@ const app = Vue.createApp({
             showEditPostModal: false,
             showEditProfileModal: false,
 
+            // 私信数据体系
+            showMsgModal: false,
+            msgTab: 'chats',
+            pmData: { chats: {}, notifs: [], notif_unread: 0 },
+            activeChatTarget: null,
+            pmInput: '',
+
             loginForm: { qq: '', password: '' },
             regForm: { qq: '', password: '', nickname: '', avatarFile: null },
-            postForm: { title: '', tag: '', content: '', imageFiles: [], previewUrls: [], coverIndex: 0 },
+            postForm: { title: '', tag: '', content: '', category: '', imageFiles: [], previewUrls: [], coverIndex: 0 },
             longPressTimer: null,
-            editPostForm: { id: null, title: '', tag: '', content: '' },
+            editPostForm: { id: null, title: '', tag: '', content: '', category: '' },
             editProfileForm: { nickname: '', bio: '', avatarFile: null },
             historyView: 'home',
             historyProfileQQ: ''
         }
     },
+    computed: {
+        totalUnread() {
+            if (!this.pmData) return 0;
+            let c = this.pmData.notif_unread || 0;
+            for(let key in this.pmData.chats) { c += (this.pmData.chats[key].unread || 0); }
+            return c;
+        },
+        notifUnread() { return this.pmData.notif_unread || 0; },
+        currentChatMessages() {
+            if(!this.activeChatTarget || !this.pmData.chats[this.activeChatTarget.qq]) return [];
+            return this.pmData.chats[this.activeChatTarget.qq].msgs || [];
+        }
+    },
     mounted() {
         const savedUser = localStorage.getItem('community_user_v2');
-        if (savedUser) { try { this.currentUser = JSON.parse(savedUser); } catch(e) {} }
+        if (savedUser) { 
+            try { 
+                this.currentUser = JSON.parse(savedUser); 
+                this.refreshMyAccount(); 
+            } catch(e) {} 
+        }
         this.loadHome(true);
         window.addEventListener('scroll', this.handleScroll);
     },
@@ -673,6 +902,14 @@ const app = Vue.createApp({
         handleImageError(e) { e.target.src = 'https://via.placeholder.com/400x600?text=图片已失效'; },
         previewImage(url) { window.open(url, '_blank', 'noopener'); },
 
+        // 获取板块名称
+        getPostBoardName(post) {
+            if(post['player-characters'] === 'true') return '玩家角色卡';
+            if(post['npc-characters'] === 'true') return 'NPC角色卡';
+            if(post['items'] === 'true') return '道具卡';
+            return '';
+        },
+
         getImages(post) {
             if (!post.image_url || post.image_url === 'SYS_ACCOUNT') return [];
             try {
@@ -711,10 +948,20 @@ const app = Vue.createApp({
             } catch(e) { console.error("点赞状态同步失败", e); }
         },
 
+        // --- 评论与提及功能 ---
         getCommentsList(post) {
             try { return JSON.parse(post.comments || '[]'); }
             catch(e) { return []; }
         },
+        highlightMentions(text) {
+            if(!text) return '';
+            // 防止XSS攻击：先进行基础转义
+            let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            // 匹配 @QQ号(昵称) 并替换为高亮 span
+            return safeText.replace(/@(\d+)\((.*?)\)/g, '<span class="mention-text" title="QQ:$1">@$2</span>');
+        },
+        
+        // 主评论发布
         async submitComment() {
             if (!this.commentInput.trim() || !this.currentPost) return;
 
@@ -724,8 +971,20 @@ const app = Vue.createApp({
                 nickname: this.currentUser.nickname,
                 avatar_url: this.currentUser.avatar_url,
                 text: this.commentInput.trim(),
-                time: new Date().getTime()
+                time: new Date().getTime(),
+                replies: [] // 初始化楼中楼数组
             });
+
+            // 检测 @ 并发送通知
+            let mentions = [...this.commentInput.matchAll(/@(\d+)\((.*?)\)/g)];
+            if(mentions.length > 0) {
+                let uniqueQQs = [...new Set(mentions.map(m=>m[1]))];
+                for(let targetQQ of uniqueQQs) {
+                    if(targetQQ !== this.currentUser.qq_number) {
+                        this.sendSystemNotif(targetQQ, `用户 <b style="color:var(--accent)">${this.currentUser.nickname}</b> 在帖子 [${this.currentPost.title}] 的评论中@了你`);
+                    }
+                }
+            }
 
             const newCommentsStr = JSON.stringify(comments);
             this.currentPost.comments = newCommentsStr;
@@ -738,6 +997,173 @@ const app = Vue.createApp({
             } catch(e) { alert("评论发布失败，请重试"); }
         },
 
+        // --- 楼中楼回复功能 ---
+        openReplyBox(parentComment, targetUser) {
+            if (!this.currentUser) {
+                this.showLoginModal = true;
+                return;
+            }
+            // 使用 time + qq_number 作为唯一标识以防旧评论没有id
+            this.activeReplyId = parentComment.time + '_' + parentComment.qq_number;
+            this.replyTarget = targetUser;
+            this.replyInput = ''; 
+        },
+        cancelReply() {
+            this.activeReplyId = null;
+            this.replyTarget = null;
+            this.replyInput = '';
+        },
+        async submitReply(parentComment) {
+            if (!this.replyInput.trim()) return;
+
+            let cList = this.getCommentsList(this.currentPost);
+            // 在数组中找到对应的父评论
+            let parent = cList.find(c => c.time === parentComment.time && c.qq_number === parentComment.qq_number);
+            if (!parent) return;
+
+            if (!parent.replies) parent.replies = [];
+
+            const replyObj = {
+                qq_number: this.currentUser.qq_number,
+                nickname: this.currentUser.nickname,
+                avatar_url: this.currentUser.avatar_url,
+                target_qq: this.replyTarget ? this.replyTarget.qq : parent.qq_number,
+                target_nickname: this.replyTarget ? this.replyTarget.nickname : parent.nickname,
+                text: this.replyInput.trim(),
+                time: new Date().getTime()
+            };
+
+            parent.replies.push(replyObj);
+
+            // 1. 给被回复的人发送通知
+            if (replyObj.target_qq !== this.currentUser.qq_number) {
+                let shortText = replyObj.text.length > 20 ? replyObj.text.substring(0, 20) + '...' : replyObj.text;
+                this.sendSystemNotif(replyObj.target_qq, `用户 <b style="color:var(--accent)">${this.currentUser.nickname}</b> 回复了你的评论: ${shortText}`);
+            }
+
+            // 2. 检测文本内是否有手打的 @
+            let mentions = [...this.replyInput.matchAll(/@(\d+)\((.*?)\)/g)];
+            let uniqueQQs = [...new Set(mentions.map(m=>m[1]))];
+            for(let tQQ of uniqueQQs) {
+                if (tQQ !== this.currentUser.qq_number && tQQ !== replyObj.target_qq) {
+                    this.sendSystemNotif(tQQ, `用户 <b style="color:var(--accent)">${this.currentUser.nickname}</b> 在评论中@了你`);
+                }
+            }
+
+            this.currentPost.comments = JSON.stringify(cList);
+            this.cancelReply(); // 清除回复状态
+
+            try {
+                await fetch(`${SUPABASE_URL}?id=eq.${this.currentPost.id}`, {
+                    method: 'PATCH', headers: HEADERS, body: JSON.stringify({ comments: this.currentPost.comments })
+                });
+            } catch(e) { alert("回复失败，请检查网络"); }
+        },
+
+        // --- 私信系统体系 ---
+        async refreshMyAccount() {
+            if(!this.currentUser) return;
+            try {
+                let res = await fetch(`${SUPABASE_URL}?qq_number=eq.${this.currentUser.qq_number}&title=eq.$$ACCOUNT$$`,{headers:HEADERS});
+                let data = await res.json();
+                if(data.length > 0) {
+                    this.currentUser = data[0];
+                    localStorage.setItem('community_user_v2', JSON.stringify(this.currentUser));
+                    try { 
+                        this.pmData = JSON.parse(this.currentUser.private_message || '{"chats":{}, "notifs":[], "notif_unread":0}'); 
+                    } catch(e) { 
+                        this.pmData = {chats:{}, notifs:[], notif_unread:0}; 
+                    }
+                }
+            } catch(e){}
+        },
+        openMessageModal() { 
+            this.refreshMyAccount(); 
+            this.activeChatTarget = null; 
+            this.showMsgModal = true; 
+        },
+        async clearNotifs() { 
+            if(this.pmData.notif_unread > 0) {
+                this.pmData.notif_unread = 0;
+                await this.saveMyPMData();
+            }
+        },
+        startChatWith(profile) {
+            this.showMsgModal = true; 
+            this.msgTab = 'chats';
+            if(!this.pmData.chats) this.pmData.chats = {};
+            if(!this.pmData.chats[profile.qq_number]) {
+                this.pmData.chats[profile.qq_number] = { name: profile.nickname, unread: 0, msgs: [] };
+            }
+            this.openChatWindow(profile.qq_number, this.pmData.chats[profile.qq_number]);
+        },
+        async openChatWindow(qq, chatObj) {
+            this.activeChatTarget = { qq: qq, name: chatObj.name };
+            if(chatObj.unread > 0) {
+                chatObj.unread = 0;
+                await this.saveMyPMData();
+            }
+            setTimeout(()=>{ let b = document.getElementById('chat-msgs-box'); if(b) b.scrollTop = b.scrollHeight; }, 100);
+        },
+        async saveMyPMData() {
+            this.currentUser.private_message = JSON.stringify(this.pmData);
+            await fetch(`${SUPABASE_URL}?id=eq.${this.currentUser.id}`, {
+                method: 'PATCH', headers: HEADERS, body: JSON.stringify({private_message: this.currentUser.private_message})
+            });
+        },
+        async sendPM() {
+            if(!this.pmInput.trim() || !this.activeChatTarget) return;
+            const text = this.pmInput.trim(); 
+            this.pmInput = '';
+            const msgObj = { from: this.currentUser.qq_number, text: text, time: Date.now() };
+            
+            // 1. 存入自己的记录
+            this.pmData.chats[this.activeChatTarget.qq].msgs.push(msgObj);
+            await this.saveMyPMData();
+            setTimeout(()=>{ let b = document.getElementById('chat-msgs-box'); if(b) b.scrollTop = b.scrollHeight; }, 100);
+
+            // 2. 更新对方的列数据
+            try {
+                let r = await fetch(`${SUPABASE_URL}?qq_number=eq.${this.activeChatTarget.qq}&title=eq.$$ACCOUNT$$`,{headers:HEADERS});
+                let d = await r.json();
+                if(d.length > 0) {
+                    let targetAcc = d[0];
+                    let targetPM;
+                    try { targetPM = JSON.parse(targetAcc.private_message || '{"chats":{},"notifs":[],"notif_unread":0}'); } 
+                    catch { targetPM = {chats:{},notifs:[],notif_unread:0}; }
+                    
+                    if(!targetPM.chats[this.currentUser.qq_number]) {
+                        targetPM.chats[this.currentUser.qq_number] = { name: this.currentUser.nickname, unread: 0, msgs: [] };
+                    }
+                    targetPM.chats[this.currentUser.qq_number].msgs.push(msgObj);
+                    targetPM.chats[this.currentUser.qq_number].unread += 1;
+                    
+                    await fetch(`${SUPABASE_URL}?id=eq.${targetAcc.id}`, {
+                        method: 'PATCH', headers: HEADERS, body: JSON.stringify({private_message: JSON.stringify(targetPM)})
+                    });
+                }
+            } catch(e){}
+        },
+        async sendSystemNotif(targetQQ, htmlText) {
+            try {
+                let r = await fetch(`${SUPABASE_URL}?qq_number=eq.${targetQQ}&title=eq.$$ACCOUNT$$`,{headers:HEADERS});
+                let d = await r.json();
+                if(d.length > 0) {
+                    let acc = d[0];
+                    let pm; 
+                    try { pm = JSON.parse(acc.private_message||'{"chats":{},"notifs":[],"notif_unread":0}'); } 
+                    catch { pm = {chats:{},notifs:[],notif_unread:0}; }
+                    
+                    pm.notifs.unshift({ text: htmlText, time: Date.now() });
+                    pm.notif_unread = (pm.notif_unread || 0) + 1;
+                    
+                    await fetch(`${SUPABASE_URL}?id=eq.${acc.id}`, {
+                        method:'PATCH', headers:HEADERS, body:JSON.stringify({private_message: JSON.stringify(pm)})
+                    });
+                }
+            }catch(e){}
+        },
+
         handleScroll() {
             const bottomOfWindow = document.documentElement.scrollTop + window.innerHeight >= document.documentElement.offsetHeight - 100;
             if (bottomOfWindow && !this.isLoading && this.hasMore && this.view !== 'post_detail') {
@@ -746,15 +1172,22 @@ const app = Vue.createApp({
             }
         },
 
+        setCategory(cat) {
+            this.currentCategory = cat;
+            this.loadHome(true);
+        },
+
         goHome() {
             this.searchKeyword = '';
             this.searchInput = '';
+            this.currentCategory = '';
             this.loadHome(true);
         },
         doSearchBox() {
             const keyword = this.searchInput.trim();
             if(!keyword) { this.goHome(); return; }
             this.searchKeyword = keyword;
+            this.currentCategory = ''; // 搜索时清除板块过滤
             this.loadHome(true);
         },
         async loadHome(reset = true) {
@@ -775,6 +1208,10 @@ const app = Vue.createApp({
                 if (this.searchKeyword) {
                     const k = encodeURIComponent(this.searchKeyword);
                     url += `&or=(title.ilike.*${k}*,tag.ilike.*${k}*,qq_number.ilike.*${k}*)`;
+                }
+
+                if (this.currentCategory) {
+                    url += `&${this.currentCategory}=eq.true`;
                 }
 
                 url += `&order=created_at.desc&limit=${this.pageSize}&offset=${offset}`;
@@ -881,6 +1318,7 @@ const app = Vue.createApp({
 
                 this.showLoginModal = false;
                 this.loginForm = { qq: '', password: '' };
+                this.refreshMyAccount(); 
             } catch(e) { alert(e.message); } finally { this.isAuthLoading = false; }
         },
         doLogout() {
@@ -933,7 +1371,7 @@ const app = Vue.createApp({
         },
         clearPostForm() {
             this.postForm.previewUrls.forEach(url => URL.revokeObjectURL(url));
-            this.postForm = { title: '', tag: '', content: '', imageFiles: [], previewUrls: [], coverIndex: 0 };
+            this.postForm = { title: '', tag: '', content: '', category: '', imageFiles: [], previewUrls: [], coverIndex: 0 };
         },
         handlePostFiles(e) {
             const files = Array.from(e.target.files);
@@ -964,8 +1402,9 @@ const app = Vue.createApp({
         },
 
         async doPost() {
-            if(this.postForm.imageFiles.length === 0) return alert("分享OC必须至少选一张图哦！");
+            if(this.postForm.imageFiles.length === 0) return alert("分享设定必须至少选一张图哦！");
             if(!this.postForm.title) return alert("给设定起个标题吧！");
+            if(!this.postForm.category) return alert("请选择要发布的板块！");
 
             this.isUploading = true;
             try {
@@ -992,6 +1431,8 @@ const app = Vue.createApp({
                     like_count: '[]', comments: '[]'
                 };
 
+                if (this.postForm.category) newPost[this.postForm.category] = 'true';
+
                 const res = await fetch(SUPABASE_URL, { method: 'POST', headers: HEADERS, body: JSON.stringify(newPost) });
                 if(!res.ok) throw new Error("保存失败，请检查网络");
 
@@ -1003,11 +1444,17 @@ const app = Vue.createApp({
         },
 
         openEditPost(post) {
+            let cat = '';
+            if(post['player-characters'] === 'true') cat = 'player-characters';
+            else if(post['npc-characters'] === 'true') cat = 'npc-characters';
+            else if(post['items'] === 'true') cat = 'items';
+
             this.editPostForm = {
                 id: post.id,
                 title: post.title,
                 tag: post.tag || '',
-                content: this.getPostContent(post.content)
+                content: this.getPostContent(post.content),
+                category: cat
             };
             this.showEditPostModal = true;
         },
@@ -1019,8 +1466,16 @@ const app = Vue.createApp({
                 const updateData = {
                     title: this.editPostForm.title,
                     tag: formattedTag,
-                    content: { text: this.editPostForm.content }
+                    content: { text: this.editPostForm.content },
+                    "player-characters": null,
+                    "npc-characters": null,
+                    "items": null
                 };
+
+                if (this.editPostForm.category) {
+                    updateData[this.editPostForm.category] = 'true';
+                }
+
                 const res = await fetch(`${SUPABASE_URL}?id=eq.${this.editPostForm.id}`, {
                     method: 'PATCH', headers: HEADERS, body: JSON.stringify(updateData)
                 });
@@ -1032,12 +1487,19 @@ const app = Vue.createApp({
                     this.posts[postIndex].title = updateData.title;
                     this.posts[postIndex].tag = updateData.tag;
                     this.posts[postIndex].content = updateData.content;
+                    this.posts[postIndex]['player-characters'] = updateData['player-characters'];
+                    this.posts[postIndex]['npc-characters'] = updateData['npc-characters'];
+                    this.posts[postIndex]['items'] = updateData['items'];
                 }
                 if (this.currentPost && this.currentPost.id === this.editPostForm.id) {
                     this.currentPost.title = updateData.title;
                     this.currentPost.tag = updateData.tag;
                     this.currentPost.content = updateData.content;
+                    this.currentPost['player-characters'] = updateData['player-characters'];
+                    this.currentPost['npc-characters'] = updateData['npc-characters'];
+                    this.currentPost['items'] = updateData['items'];
                 }
+                alert("帖子修改成功！");
             } catch(e) { alert(e.message); } finally { this.isUploading = false; }
         },
 
