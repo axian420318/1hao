@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <title>羊皮卷轴 TRPG</title>
+    <style>
+        /* ================= 全局变量 & 性能优化材质 ================= */
+        :root { --paper-bg: #E8D5B7; --paper-dark: #D4B892; --ink-dark: #2C1E16; --red-btn: #a32a2a; --gold-trim: #5a4b3c; --sys-blue: #4a6da7; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body, html { height: 100dvh; width: 100%; overflow: hidden; background-color: var(--paper-bg); background-image: radial-gradient(circle at 50% 30%, #f1e4d0 0%, var(--paper-dark) 100%); color: var(--ink-dark); display: flex; flex-direction: column; }
+        input, textarea { user-select: text; }
+
+        .view { display: none; width: 100%; height: 100%; flex-direction: column; position: absolute; top: 0; left: 0; }
+        .view.active { display: flex; }
+
+        .primary-btn { background: var(--red-btn); color: #fff; border: none; padding: 12px 20px; font-size: 15px; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.1s; display: inline-flex; justify-content: center; align-items: center; cursor: pointer; }
+        .primary-btn:active { transform: scale(0.96); box-shadow: 0 2px 3px rgba(0,0,0,0.15); }
+        .secondary-btn { background: #fdfaf4; color: var(--ink-dark); border: 1px solid #ccc; box-shadow: none; }
+        .icon-btn { background: #e0cca8; border: 1px solid var(--gold-trim); border-radius: 4px; width: 26px; height: 26px; display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--ink-dark); cursor: pointer; }
+        .icon-btn:active { background: #d4b892; }
+
+        /* ================= 1. 登录页 ================= */
+        #view-login { justify-content: center; align-items: center; }
+        .d20-logo { width: 120px; height: 120px; margin-bottom: 40px; }
+        /* 美术适配：通过滤镜将手绘白色线条转换为羊皮卷主题的深棕色墨水笔触 */
+        .d20-logo.hand-drawn-logo {
+            filter: invert(18%) sepia(20%) saturate(1200%) hue-rotate(340deg) brightness(85%) contrast(95%) drop-shadow(0px 6px 8px rgba(0,0,0,0.25));
+            transform: scale(1.1);
+        }
+        .login-form { width: 80%; display: flex; flex-direction: column; gap: 20px; }
+        .ink-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--ink-dark); font-size: 16px; color: var(--ink-dark); padding: 10px 5px; outline: none; }
+
+        /* ================= 2. 主页面 ================= */
+        .tab-content { display: none; flex: 1; overflow-y: auto; padding: 15px; }
+        .tab-content.active { display: block; }
+        .header-title { text-align: center; font-size: 18px; font-weight: bold; padding: 15px 0; border-bottom: 1px solid rgba(44, 30, 22, 0.1); margin-bottom: 15px;}
+
+        .paper-slip { position: relative; height: 80px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-radius: 6px; overflow: hidden; background: #d0bba1; }
+        .slip-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: flex-end; align-items: center; padding-right: 15px; }
+        .join-btn { background: var(--red-btn); color: #fff; border: none; padding: 8px 25px; border-radius: 4px; font-weight: bold; font-size: 15px; }
+        .slip-left { position: absolute; top: 0; left: 0; height: 100%; width: 75%; background: #fdfaf4; padding: 15px; z-index: 2; pointer-events: none; display: flex; flex-direction: column; justify-content: center; }
+        .slip-right { position: absolute; top: 0; right: 0; height: 100%; width: 25%; background: #fdfaf4; z-index: 3; display: flex; justify-content: center; align-items: center; color: #888; font-size: 14px; cursor: pointer; border-left: 2px dashed #d4c4b4; transform-origin: bottom left; transition: transform 0.4s, opacity 0.3s; }
+        .paper-slip.torn .slip-right { transform: translate3d(20px, 30px, 0) rotate(15deg); opacity: 0; pointer-events: none; }
+
+        .char-card { background: #fdfaf4; padding: 15px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; cursor: pointer; transition: 0.2s; }
+        .char-card.active { border-left-color: var(--red-btn); background: #fdf0e6; }
+        .active-badge { position: absolute; top: 15px; right: 15px; background: var(--red-btn); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 4px; display: none;}
+        .char-card.active .active-badge { display: block; }
+        .char-stats { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; color: #666; margin-top: 8px; }
+
+        .profile-card { background: #fdfaf4; padding: 20px; border-radius: 6px; text-align: center; }
+        .avatar-display { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold-trim); background: #ccc; margin: 0 auto 15px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; font-size: 14px; }
+
+        .bottom-nav { display: flex; justify-content: space-around; padding: 10px 0 20px 0; background: #faf7f2; border-top: 1px solid #e0d5c1; }
+        .nav-item { font-size: 14px; color: #888; flex: 1; text-align: center; padding: 5px 0;}
+        .nav-item.active { color: var(--red-btn); font-weight: bold; }
+
+        /* ================= 3. 跑团内页 (桌面与聊天) ================= */
+        #view-campaign { background-image: radial-gradient(circle at 50% 30%, #e8dcc8 0%, #d4c2a7 100%); }
+        .camp-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.5); border-bottom: 1px solid #d4c2a7; }
+        .header-btn { font-size: 14px; background: #fff; border: 1px solid #ccc; padding: 6px 12px; border-radius: 4px; color: var(--ink-dark); display: flex; align-items: center; gap: 5px; }
+        
+        .chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+        .chat-row { display: flex; gap: 10px; align-items: flex-start; width: 100%; }
+        .chat-row.player { justify-content: flex-end; } 
+        .chat-row.system { justify-content: flex-start; } 
+
+        .chat-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ccc; background: #eee; flex-shrink: 0; }
+        .sys-avatar { width: 40px; height: 40px; border-radius: 50%; background: #3c4250; color:#fff; display:flex; justify-content:center; align-items:center; font-weight:bold; font-size:12px; border: 2px solid #555; flex-shrink: 0;}
+        
+        .chat-bubble { max-width: 75%; padding: 10px 14px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; }
+        .chat-row.system .chat-bubble { background: #f0f4f8; border-top-left-radius: 0; border: 1px solid #d0d8e0;}
+        .chat-row.player .chat-bubble { background: #e3eedf; border-top-right-radius: 0; }
+        
+        .mention { color: var(--sys-blue); font-weight: bold; }
+        .chat-time { font-size: 11px; color: #999; margin-top: 6px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 4px; text-align: right; }
+
+        .chat-input-bar { display: flex; padding: 10px; background: #fdfaf4; border-top: 1px solid #d4c2a7; }
+        .chat-input { flex: 1; border: 1px solid #ccc; padding: 10px; border-radius: 4px; outline: none; background: #fff; font-size: 15px;}
+
+        /* ================= 4. 抽屉与模态框 ================= */
+        .drawer { position: absolute; top: 0; bottom: 0; width: 75%; max-width: 320px; background: #fdfaf4; z-index: 100; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.2); transition: transform 0.3s; will-change: transform; overflow-y:auto; }
+        .drawer-left { left: 0; transform: translate3d(-105%, 0, 0); border-right: 2px solid var(--gold-trim);}
+        .drawer-right { right: 0; transform: translate3d(105%, 0, 0); border-left: 2px solid var(--gold-trim);}
+        .drawer.open { transform: translate3d(0, 0, 0); }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50; }
+        .overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -40%); width: 90%; max-width: 360px; background: #fdfaf4; border-radius: 8px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 200; opacity: 0; pointer-events: none; transition: all 0.3s; max-height: 90vh; overflow-y: auto;}
+        .modal.active { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+        
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; font-size: 13px; color: #666; margin-bottom: 5px; }
+        .form-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 14px; background: #fff;}
+        .form-row { display: flex; gap: 8px; align-items: flex-end;}
+
+        /* 高级建卡属性框 */
+        .attr-row-box { background: #f4ebd8; padding: 10px; border-radius: 6px; border: 1px solid #d4c2a7; margin-bottom: 10px;}
+
+        /* 高质感血条/属性条 */
+        .glass-tube { width: 100%; height: 18px; background: #222; border-radius: 9px; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.5); overflow: hidden; margin-top: 5px;}
+        .liquid-fill { position: absolute; left: 0; top: 0; height: 100%; transition: width 0.3s; }
+        .glass-glare { position: absolute; left: 4px; right: 4px; top: 2px; height: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%); border-radius: 2px; z-index: 2; pointer-events:none;}
+        
+        /* 骰子交互原生预留 */
+        .dice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .dice-btn { background: #fff; border: 1px solid #ccc; padding: 15px 0; text-align: center; border-radius: 6px; font-weight: bold; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        
+        /* 引入的手绘骰子面板样式 */
+        .handdrawn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
+        .handdrawn-die-wrap {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+            background: linear-gradient(180deg, #fffaf3, #f4ebd8); border: 1px solid #d9c5a6; border-radius: 8px;
+            padding: 8px 0; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(44,30,22,0.08); transition: all 0.15s;
+        }
+        .handdrawn-die-wrap:active { transform: translateY(2px); box-shadow: 0 0 2px rgba(44,30,22,0.1); background: #ebdcc8; }
+        .handdrawn-die {
+            width: 32px; height: 32px; object-fit: contain;
+            /* 美术适配：将纯白线条滤镜转化为羊皮纸风味的深棕色墨水 */
+            filter: invert(18%) sepia(20%) saturate(1200%) hue-rotate(340deg) brightness(85%) contrast(95%);
+        }
+        .handdrawn-label { font-size: 13px; font-weight: bold; color: var(--ink-dark); }
+
+
+        .campaign-topbar { display:flex; align-items:center; justify-content:center; position:relative; margin-bottom:15px; border-bottom:1px solid rgba(44, 30, 22, 0.1); }
+        .campaign-topbar .header-title { border-bottom:none; margin-bottom:0; flex:1; }
+        .create-camp-btn { position:absolute; right:0; top:50%; transform:translateY(-50%); padding:7px 10px; font-size:13px; }
+        .camp-status-pill { display:inline-flex; align-items:center; gap:4px; margin-top:5px; color:#2f6b3a; font-size:13px; font-weight:600; }
+        .camp-status-pill::before { content:''; width:7px; height:7px; border-radius:50%; background:#3fa35b; box-shadow:0 0 8px rgba(63,163,91,.7); }
+        .camp-status-pill.inactive { color:#888; }
+        .camp-status-pill.inactive::before { background:#999; box-shadow:none; }
+        .manual-dice-box { background:#f7efe2; border:1px solid #d9c5a6; border-radius:8px; padding:12px; margin-bottom:22px; }
+        .dice-hint { color:#8a7156; font-size:12px; line-height:1.5; margin-top:8px; }
+        .stat-block { margin-bottom:17px; padding:10px; border:1px solid rgba(90,75,60,.18); border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(244,235,216,.65)); box-shadow:0 2px 8px rgba(44,30,22,.06); }
+        .stat-row-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+        .stat-name { font-weight:800; font-size:13px; letter-spacing:.04em; }
+        .stat-controls { display:flex; gap:4px; align-items:center; flex-shrink:0; }
+        .stat-input { width:46px; text-align:center; padding:4px; border:1px solid #cdbb9e; border-radius:5px; background:#fffaf3; font-weight:700; }
+        .glass-tube { height:22px; background:linear-gradient(180deg,#181410,#3d3329 52%,#16120f); border:1px solid rgba(255,255,255,.35); border-radius:12px; box-shadow:inset 0 3px 7px rgba(0,0,0,.82), inset 0 -2px 3px rgba(255,255,255,.13), 0 2px 4px rgba(44,30,22,.22); }
+        .liquid-fill { border-radius:12px 4px 4px 12px; background-image:linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.04) 38%, rgba(0,0,0,.22) 100%); box-shadow:inset 0 0 10px rgba(255,255,255,.22), 0 0 10px currentColor; }
+        .glass-glare { height:7px; background:linear-gradient(90deg, rgba(255,255,255,.65), rgba(255,255,255,.18), rgba(255,255,255,0)); }
+        .bar-value-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff6e8; font-size:12px; font-weight:800; text-shadow:0 1px 2px #000; z-index:3; pointer-events:none; }
+        .player-msg-wrap { display:flex; flex-direction:column; align-items:flex-end; max-width:75%; }
+        .chat-name { font-size:12px; color:#7b6a58; margin:0 2px 4px 0; font-weight:700; }
+        .player-msg-wrap .chat-bubble { max-width:100%; }
+        .chat-input-bar:focus-within { box-shadow:0 -4px 14px rgba(90,75,60,.12); }
+        .dice-stage { position:fixed; inset:0; z-index:180; pointer-events:none; display:flex; align-items:center; justify-content:center; perspective:1050px; opacity:0; transition:opacity .12s linear; background:radial-gradient(circle at 50% 52%, rgba(0,0,0,.12), rgba(0,0,0,0) 42%); contain:layout paint style; }
+        .dice-stage.active { opacity:1; }
+        .dice-cloud { display:flex; gap:16px; flex-wrap:wrap; align-items:center; justify-content:center; max-width:92vw; transform-style:preserve-3d; contain:layout paint style; }
+        .true-d20 { --dice-size:138px; --tri-w:92px; --tri-h:80px; --dice-z:46px; width:var(--dice-size); height:var(--dice-size); position:relative; transform-style:preserve-3d; animation:true-d20-slam .92s cubic-bezier(.16,.82,.18,1.04) forwards; will-change:transform,opacity; contain:layout paint style; }
+        .true-d20.small { --dice-size:70px; --tri-w:46px; --tri-h:40px; --dice-z:23px; animation-duration:.76s; }
+        .true-d20::after { content:''; position:absolute; left:18%; right:18%; bottom:-10%; height:16%; border-radius:50%; background:rgba(0,0,0,.30); filter:blur(5px); transform:translateZ(-70px); opacity:.65; }
+        .d20-core { position:absolute; inset:0; transform-style:preserve-3d; animation:true-d20-spin .78s cubic-bezier(.2,.7,.18,1) forwards; will-change:transform; }
+        .ico-face { position:absolute; left:50%; top:50%; width:var(--tri-w); height:var(--tri-h); margin-left:calc(var(--tri-w) / -2); margin-top:calc(var(--tri-h) / -2); clip-path:polygon(50% 0%, 100% 100%, 0% 100%); background:linear-gradient(145deg,#c44e35 0%,#8f2425 48%,#411111 100%); border:1px solid rgba(255,221,150,.58); box-shadow:inset 0 0 0 1px rgba(68,14,12,.42); backface-visibility:hidden; }
+        .ico-face::after { content:''; position:absolute; inset:14% 20% 18%; clip-path:polygon(50% 0%,100% 100%,0% 100%); border:1px solid rgba(255,232,165,.24); }
+        .ico-face:nth-child(1) { transform:rotateY(0deg) rotateX(58deg) translateZ(var(--dice-z)); filter:brightness(1.15); }
+        .ico-face:nth-child(2) { transform:rotateY(72deg) rotateX(58deg) translateZ(var(--dice-z)); filter:brightness(1.05); }
+        .ico-face:nth-child(3) { transform:rotateY(144deg) rotateX(58deg) translateZ(var(--dice-z)); filter:brightness(.95); }
+        .ico-face:nth-child(4) { transform:rotateY(216deg) rotateX(58deg) translateZ(var(--dice-z)); filter:brightness(.86); }
+        .ico-face:nth-child(5) { transform:rotateY(288deg) rotateX(58deg) translateZ(var(--dice-z)); filter:brightness(1.02); }
+        .ico-face:nth-child(6) { transform:rotateY(36deg) rotateX(18deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(1.12); }
+        .ico-face:nth-child(7) { transform:rotateY(108deg) rotateX(18deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.99); }
+        .ico-face:nth-child(8) { transform:rotateY(180deg) rotateX(18deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.89); }
+        .ico-face:nth-child(9) { transform:rotateY(252deg) rotateX(18deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.82); }
+        .ico-face:nth-child(10) { transform:rotateY(324deg) rotateX(18deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(1.04); }
+        .ico-face:nth-child(11) { transform:rotateY(0deg) rotateX(-18deg) rotateZ(180deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(1.03); }
+        .ico-face:nth-child(12) { transform:rotateY(72deg) rotateX(-18deg) rotateZ(180deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.94); }
+        .ico-face:nth-child(13) { transform:rotateY(144deg) rotateX(-18deg) rotateZ(180deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.84); }
+        .ico-face:nth-child(14) { transform:rotateY(216deg) rotateX(-18deg) rotateZ(180deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.78); }
+        .ico-face:nth-child(15) { transform:rotateY(288deg) rotateX(-18deg) rotateZ(180deg) translateZ(calc(var(--dice-z) * .92)); filter:brightness(.98); }
+        .ico-face:nth-child(16) { transform:rotateY(36deg) rotateX(-58deg) rotateZ(180deg) translateZ(var(--dice-z)); filter:brightness(.92); }
+        .ico-face:nth-child(17) { transform:rotateY(108deg) rotateX(-58deg) rotateZ(180deg) translateZ(var(--dice-z)); filter:brightness(.84); }
+        .ico-face:nth-child(18) { transform:rotateY(180deg) rotateX(-58deg) rotateZ(180deg) translateZ(var(--dice-z)); filter:brightness(.77); }
+        .ico-face:nth-child(19) { transform:rotateY(252deg) rotateX(-58deg) rotateZ(180deg) translateZ(var(--dice-z)); filter:brightness(.86); }
+        .ico-face:nth-child(20) { transform:rotateY(324deg) rotateX(-58deg) rotateZ(180deg) translateZ(var(--dice-z)); filter:brightness(1.06); }
+        .d20-number { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transform:translateZ(calc(var(--dice-z) + 18px)); color:#fff7d5; font-size:38px; font-weight:950; text-shadow:0 2px 2px rgba(0,0,0,.72); z-index:5; backface-visibility:hidden; }
+        .true-d20.small .d20-number { font-size:21px; transform:translateZ(calc(var(--dice-z) + 9px)); }
+        .dice-impact-ring { position:absolute; left:50%; top:56%; width:16px; height:16px; border:2px solid rgba(255,244,210,.72); border-radius:50%; transform:translate(-50%,-50%) translateZ(-62px); animation:impact-ring .38s .40s ease-out forwards; opacity:0; }
+        .dice-skip-toast { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(44,30,22,.9); color:#fff3df; border:1px solid rgba(255,230,170,.42); border-radius:999px; padding:10px 16px; font-size:13px; box-shadow:0 8px 22px rgba(0,0,0,.22); }
+        @keyframes true-d20-slam {
+            0% { transform:translate3d(0,-58vh,220px) scale(.72) rotateX(18deg); opacity:.25; }
+            58% { transform:translate3d(0,8px,8px) scale(1.04) rotateX(0deg); opacity:1; }
+            72% { transform:translate3d(0,-18px,22px) scale(.98) rotateX(0deg); }
+            100% { transform:translate3d(0,0,0) scale(1) rotateX(0deg); opacity:1; }
+        }
+        @keyframes true-d20-spin {
+            0% { transform:rotateX(-380deg) rotateY(320deg) rotateZ(-160deg); }
+            70% { transform:rotateX(18deg) rotateY(-28deg) rotateZ(8deg); }
+            100% { transform:rotateX(14deg) rotateY(-18deg) rotateZ(0deg); }
+        }
+        @keyframes impact-ring { to { width:220px; height:220px; opacity:0; } }
+        @media (prefers-reduced-motion: reduce) {
+            .true-d20, .d20-core, .dice-impact-ring { animation:none !important; }
+            .dice-stage { transition:none; }
+        }
+        @media (max-width: 420px) {
+            .true-d20 { --dice-size:116px; --tri-w:78px; --tri-h:68px; --dice-z:39px; }
+            .true-d20.small { --dice-size:58px; --tri-w:38px; --tri-h:34px; --dice-z:19px; }
+        }
+
+        /* 隐藏文件上传 */
+        #avatar-upload { display: none; }
+        .avatar-edit-label { display: inline-block; padding: 5px 10px; background: #eee; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 10px; border: 1px solid #ccc;}
+    </style>
+<link rel="stylesheet" href="/Static/css/Global.css"/><link rel="stylesheet" href="/Web/css/Global.css"/><link rel="stylesheet" href="/Web/css/SoruxGPT.css"/></head>
+<body>
+
+    <!-- ================= 1. 登录大厅 ================= -->
+    <div id="view-login" class="view active">
+        <!-- 美术融合：使用手绘风格 D20 作为主视觉 Logo，并加上深墨水滤镜 -->
+        <img class="d20-logo hand-drawn-logo" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D20_jup8pj.png" alt="D20 Logo">
+        <div class="login-form">
+            <input type="text" class="ink-input" placeholder="账号">
+            <input type="password" class="ink-input" placeholder="密码">
+            <button class="primary-btn" onclick="navigateTo('view-main')">进入大厅</button>
+        </div>
+    </div>
+
+    <!-- ================= 2. 主界面 ================= -->
+    <div id="view-main" class="view">
+        <div id="tab-campaigns" class="tab-content active">
+            <div class="campaign-topbar">
+                <div class="header-title">阿卡姆告示板</div>
+                <button class="primary-btn secondary-btn create-camp-btn" onclick="openModal('modal-create-camp')">+ 建团</button>
+            </div>
+            <div id="camp-list-container">
+                <!-- 团列表动态渲染区 -->
+            </div>
+        </div>
+
+        <div id="tab-characters" class="tab-content">
+            <div class="header-title">角色卡档案</div>
+            <div id="char-list-container"></div>
+            <button class="primary-btn secondary-btn" style="width:100%; margin-top:10px;" onclick="openModal('modal-create-char')">+ 建立新档案</button>
+        </div>
+
+        <div id="tab-profile" class="tab-content">
+            <div class="header-title">个人资料</div>
+            <div class="profile-card">
+                <img id="display-avatar" class="avatar-display" src="">
+                <h3 id="display-nickname"></h3>
+                <p id="display-signature" style="color:#888; font-size:13px; margin: 10px 0;"></p>
+                <button class="primary-btn secondary-btn" style="width:100%; margin-top:10px;" onclick="openModal('modal-edit-profile')">编辑资料</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" data-target="tab-campaigns" onclick="switchTab('tab-campaigns')">团列表</div>
+            <div class="nav-item" data-target="tab-characters" onclick="switchTab('tab-characters')">角色卡</div>
+            <div class="nav-item" data-target="tab-profile" onclick="switchTab('tab-profile')">个人资料</div>
+        </div>
+    </div>
+
+    <!-- ================= 3. 跑团内页 (聊天室) ================= -->
+    <div id="view-campaign" class="view">
+        <div class="camp-header">
+            <button class="header-btn" onclick="exitCampaign()">返回</button>
+            <div id="in-camp-title" style="font-weight: bold; font-size:16px;">团名</div>
+            <div>
+                <button class="header-btn" style="display:inline-block; margin-right:5px;" onclick="toggleDrawer('left')">属性</button>
+                <button class="header-btn" style="display:inline-block;" onclick="toggleDrawer('right')">骰子</button>
+            </div>
+        </div>
+
+        <div class="chat-area" id="chat-box">
+            <div class="chat-row system">
+                <div class="sys-avatar">系统</div>
+                <div class="chat-bubble">
+                    <div style="font-size:12px; color:#888; margin-bottom:4px;">系统 (System)</div>
+                    房主已建立跑团桌，请玩家做好准备。
+                    <div class="chat-time">现在</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-bar">
+            <input type="text" class="chat-input" id="msg-input" placeholder="输入扮演内容...">
+            <!-- 核心交互：ontouchstart/onmousedown 拦截焦点流失，实现连续打字 -->
+            <button class="primary-btn" style="margin-left:10px;" onmousedown="event.preventDefault(); sendMsg()" ontouchstart="event.preventDefault(); sendMsg()">发送</button>
+        </div>
+
+        <!-- ==== 左侧属性抽屉 (可修改) ==== -->
+        <div id="drawer-left" class="drawer drawer-left">
+            <!-- 由 JS 渲染可操作的属性面板 -->
+        </div>
+
+        <!-- ==== 右侧骰子抽屉 (多骰与求和) ==== -->
+        <div id="drawer-right" class="drawer drawer-right">
+            <h3 style="border-bottom: 1px solid #ddd; padding-bottom:10px;">手动掷骰</h3>
+            <div class="manual-dice-box" style="margin-top:15px;">
+                <input type="text" id="manual-dice-input" class="form-input" value=".1d100" placeholder="例如 .1d6+3 / .2d6+1d4-2">
+                <button class="primary-btn" style="width:100%; margin-top:10px;" onclick="rollManualFromDrawer()">发送掷骰指令</button>
+                <div class="dice-hint">支持 .1d100、.d20、.2d6+3、.2d6+1d4-2。按 Enter 可快速发送，快捷骰也会先发送指令，再由系统识别并投掷。</div>
+            </div>
+
+            <h3 style="border-bottom: 1px solid #ddd; padding-bottom:10px;">自定多骰</h3>
+            <div style="margin-top:15px; display:flex; align-items:center; gap:8px;">
+                <input type="number" id="c-num" value="3" class="form-input" style="width:50px; text-align:center; font-weight:bold;">
+                <span style="font-size:20px; font-weight:bold;">D</span>
+                <input type="number" id="c-face" value="5" class="form-input" style="width:50px; text-align:center; font-weight:bold;">
+            </div>
+            <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:14px; font-weight:bold;"><input type="checkbox" id="c-sum" checked style="transform:scale(1.2); margin-right:5px;"> 求和计算</label>
+                <button class="primary-btn" style="padding:8px 25px;" onclick="rollCustom()">发送指令</button>
+            </div>
+
+            <h3 style="border-bottom: 1px solid #ddd; padding-bottom:10px; margin-top:40px;">快捷检定 (手绘骰子)</h3>
+            
+            <!-- 替换点：使用提供的手绘 DND 骰子集合替换了原本普通的按钮网格 -->
+            <div class="handdrawn-grid">
+                <div class="handdrawn-die-wrap" onclick="rollQuick(100)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D10_bllfgi.png" alt="D100">
+                    <span class="handdrawn-label">D100</span>
+                </div>
+                <div class="handdrawn-die-wrap" onclick="rollQuick(20)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D20_jup8pj.png" alt="D20">
+                    <span class="handdrawn-label">D20</span>
+                </div>
+                <div class="handdrawn-die-wrap" onclick="rollQuick(12)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D12_qanvfw.png" alt="D12">
+                    <span class="handdrawn-label">D12</span>
+                </div>
+                <div class="handdrawn-die-wrap" onclick="rollQuick(10)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D10_bllfgi.png" alt="D10">
+                    <span class="handdrawn-label">D10</span>
+                </div>
+                <div class="handdrawn-die-wrap" onclick="rollQuick(8)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D8_hvjxiu.png" alt="D8">
+                    <span class="handdrawn-label">D8</span>
+                </div>
+                <div class="handdrawn-die-wrap" onclick="rollQuick(6)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D6_b6q0js.png" alt="D6">
+                    <span class="handdrawn-label">D6</span>
+                </div>
+                <div class="handdrawn-die-wrap" onclick="rollQuick(4)">
+                    <img class="handdrawn-die" src="http://res.cloudinary.com/dhcon9xbu/image/upload/v1520301821/D4_fxiqj2.png" alt="D4">
+                    <span class="handdrawn-label">D4</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="dice-stage" class="dice-stage" aria-hidden="true"></div>
+
+    <!-- ================= 4. 模态框与遮罩 ================= -->
+    <div id="overlay" class="overlay" onclick="closeAll()"></div>
+
+    <!-- 建团模态框 -->
+    <div id="modal-create-camp" class="modal">
+        <h3 style="margin-bottom: 15px; text-align:center;">发起新跑团</h3>
+        <div class="form-group"><label>团名称</label><input type="text" id="camp-name" class="form-input" placeholder="例如: 敦威治的呼唤"></div>
+        <div class="form-group"><label>活动状态</label><input type="text" id="camp-status" class="form-input" placeholder="例如: 活跃 / 暂无活动" value="活跃"></div>
+        <div class="form-row" style="margin-top:20px;">
+            <button class="primary-btn secondary-btn" style="flex:1;" onclick="closeAll()">取消</button>
+            <button class="primary-btn" style="flex:1;" onclick="createCampaign()">建立</button>
+        </div>
+    </div>
+
+    <!-- 编辑资料 -->
+    <div id="modal-edit-profile" class="modal">
+        <h3 style="margin-bottom: 15px; text-align:center;">编辑资料</h3>
+        <div style="text-align:center;"><label class="avatar-edit-label" for="avatar-upload">更换本地头像</label><input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)"></div>
+        <div class="form-group"><label>昵称</label><input type="text" id="edit-nickname" class="form-input"></div>
+        <div class="form-group"><label>个性签名</label><input type="text" id="edit-signature" class="form-input"></div>
+        <div class="form-row"><button class="primary-btn secondary-btn" style="flex:1;" onclick="closeAll()">取消</button><button class="primary-btn" style="flex:1;" onclick="saveProfile()">保存</button></div>
+    </div>
+
+    <!-- 创建角色卡 (完全重构的纯自定义属性系统) -->
+    <div id="modal-create-char" class="modal">
+        <h3 style="margin-bottom: 15px; text-align:center;">建立角色档案</h3>
+        <div class="form-row" style="margin-bottom:15px;">
+            <div class="form-group" style="flex:2; margin:0;"><input type="text" id="char-name" class="form-input" placeholder="角色名 (如:亚瑟)"></div>
+            <div class="form-group" style="flex:1; margin:0;"><input type="text" id="char-class" class="form-input" placeholder="职业"></div>
+        </div>
+        
+        <label style="display:block; font-size:13px; color:#666; margin:15px 0 5px;">自定义属性区 (生命、理智等)</label>
+        <div id="dynamic-attrs-container">
+            <!-- JS 初始注入 -->
+        </div>
+        <button class="secondary-btn" style="width:100%; margin-bottom:15px; padding:8px; font-size:13px; border-radius:4px; border:1px dashed #aaa;" onclick="addDynamicAttr()">+ 增加一条新属性</button>
+
+        <div class="form-row">
+            <button class="primary-btn secondary-btn" style="flex:1;" onclick="closeAll()">取消</button>
+            <button class="primary-btn" style="flex:1;" onclick="saveCharacter()">建立档案</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= 数据架构与缓存 =================
+        const STORAGE_KEY = 'trpg_sheep_data_v4';
+        
+        let appData = {
+            profile: { nickname: "流浪调查员", signature: "愿骰子之神保佑...", avatar: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" },
+            campaigns:[ { id: 'camp_1', name: '深渊矿坑', status: '活跃', state: '第一章' } ],
+            characters:[
+                { id: "char_1", name: "亚瑟", role: "骑士", stats:[
+                    { key: "生命", val: 12, max: 15, isBar: true, color: "#a32a2a" },
+                    { key: "理智", val: 50, max: 99, isBar: true, color: "#4a6da7" },
+                    { key: "力量", val: 65, max: 100, isBar: false, color: "#000" }
+                ]}
+            ],
+            activeCharId: "char_1"
+        };
+
+        function initApp() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if(savedData) appData = JSON.parse(savedData);
+            renderProfile();
+            renderCampaigns();
+            renderCharacterList();
+            initCreateCharModal();
+        }
+        function saveToLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+        function getTimeStr() { return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
+        function escapeHtml(str) { return String(str ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
+        function escapeAttr(str) { return escapeHtml(str).replace(/`/g, '&#96;'); }
+
+        // ================= 视图与导航 =================
+        function navigateTo(viewId) { document.querySelectorAll('.view').forEach(el => el.classList.remove('active')); document.getElementById(viewId).classList.add('active'); }
+        function switchTab(tabId) { document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); document.getElementById(tabId).classList.add('active'); document.querySelector(`.nav-item[data-target="${tabId}"]`).classList.add('active'); }
+        function toggleDrawer(side) { if(side==='left') { renderLeftDrawer(); captureStatSnapshot(); } document.getElementById(`drawer-${side}`).classList.add('open'); document.getElementById('overlay').classList.add('active'); }
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); document.getElementById('overlay').classList.add('active'); }
+        function closeAll() { const leftWasOpen = document.getElementById('drawer-left')?.classList.contains('open'); stopHoldStat(); document.querySelectorAll('.drawer').forEach(el => el.classList.remove('open')); document.querySelectorAll('.modal').forEach(el => el.classList.remove('active')); document.getElementById('overlay').classList.remove('active'); if(leftWasOpen) reportStatChanges(); }
+
+        // ================= 个人资料与团列表 =================
+        function renderProfile() {
+            document.getElementById('display-avatar').src = appData.profile.avatar;
+            document.getElementById('display-nickname').innerText = appData.profile.nickname;
+            document.getElementById('display-signature').innerText = appData.profile.signature;
+            document.getElementById('edit-nickname').value = appData.profile.nickname;
+            document.getElementById('edit-signature').value = appData.profile.signature;
+        }
+        function saveProfile() {
+            appData.profile.nickname = document.getElementById('edit-nickname').value || "无名氏";
+            appData.profile.signature = document.getElementById('edit-signature').value;
+            renderProfile(); saveToLocal(); closeAll();
+        }
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (file) { const reader = new FileReader(); reader.onload = function(e) { appData.profile.avatar = e.target.result; document.getElementById('display-avatar').src = appData.profile.avatar; }; reader.readAsDataURL(file); }
+        }
+
+        function renderCampaigns() {
+            const box = document.getElementById('camp-list-container');
+            box.innerHTML = appData.campaigns.map(c => {
+                const status = c.status || c.size || '暂无活动';
+                const inactive = /暂无|休眠|停止/.test(status);
+                return `
+                <div class="paper-slip" onclick="tearPaper(this)">
+                    <div class="slip-bg"><button class="join-btn" onclick="enterCampaign(event, '${escapeAttr(c.name)}')">加入</button></div>
+                    <div class="slip-left"><div style="font-weight:bold; font-size:16px;">${escapeHtml(c.name)}</div><div style="color:#666; font-size:13px; margin-top:5px;">进度: ${escapeHtml(c.state || '准备中')}</div><div class="camp-status-pill ${inactive ? 'inactive' : ''}">${escapeHtml(status)}</div></div>
+                    <div class="slip-right">点击撕开</div>
+                </div>`;
+            }).join('');
+        }
+        function createCampaign() {
+            const name = document.getElementById('camp-name').value || "未命名跑团";
+            const status = document.getElementById('camp-status').value || "活跃";
+            appData.campaigns.unshift({ id: 'camp_'+Date.now(), name, status, state: '准备中' });
+            renderCampaigns(); saveToLocal(); closeAll(); document.getElementById('camp-name').value=''; document.getElementById('camp-status').value='活跃';
+        }
+        function tearPaper(el) { el.classList.add('torn'); }
+        function enterCampaign(e, name) { e.stopPropagation(); document.getElementById('in-camp-title').innerText = name; navigateTo('view-campaign'); }
+        function exitCampaign() { navigateTo('view-main'); }
+
+        // ================= 角色卡与属性构建系统 =================
+        function getActiveChar() { return appData.characters.find(c => c.id === appData.activeCharId) || null; }
+        
+        function renderCharacterList() {
+            const box = document.getElementById('char-list-container');
+            box.innerHTML = appData.characters.map(char => {
+                const isActive = (char.id === appData.activeCharId);
+                const statsHtml = char.stats.map(s => `<span style="background:#eee; padding:2px 6px; border-radius:4px;">${s.key}: ${s.val}</span>`).join('');
+                return `<div class="char-card ${isActive ? 'active' : ''}" onclick="selectActiveChar('${char.id}')"><div class="active-badge">出战中</div><div style="font-weight:bold; font-size:15px;">${char.name} <span style="font-weight:normal; color:#666;">(${char.role})</span></div><div class="char-stats">${statsHtml}</div></div>`;
+            }).join('');
+        }
+        function selectActiveChar(charId) { appData.activeCharId = charId; renderCharacterList(); saveToLocal(); }
+
+        // 弹窗里的自定义属性行HTML模板
+        function getAttrRowHtml(key='', val='', max='', isBar=false, color='#a32a2a') {
+            return `
+            <div class="attr-row-box">
+                <div style="display:flex; gap:5px; margin-bottom:8px;">
+                    <input class="a-key form-input" placeholder="属性名" value="${key}" style="flex:2;">
+                    <input class="a-val form-input" type="number" placeholder="当前" value="${val}" style="flex:1;">
+                    <input class="a-max form-input" type="number" placeholder="上限" value="${max}" style="flex:1;">
+                </div>
+                <div style="display:flex; gap:10px; align-items:center; font-size:12px; font-weight:bold;">
+                    <label><input type="checkbox" class="a-isbar" ${isBar?'checked':''} style="transform:scale(1.2); margin-right:5px;">以条状显示</label>
+                    <input type="color" class="a-color" value="${color}" style="height:24px; border:none; background:none;">
+                </div>
+            </div>`;
+        }
+        function initCreateCharModal() {
+            document.getElementById('dynamic-attrs-container').innerHTML = 
+                getAttrRowHtml('生命', 10, 10, true, '#a32a2a') + 
+                getAttrRowHtml('力量', 50, '', false, '#000000');
+        }
+        function addDynamicAttr() { document.getElementById('dynamic-attrs-container').insertAdjacentHTML('beforeend', getAttrRowHtml()); }
+        function saveCharacter() {
+            const name = document.getElementById('char-name').value || "无名";
+            const role = document.getElementById('char-class').value || "平民";
+            const stats =[];
+            document.querySelectorAll('.attr-row-box').forEach(row => {
+                const key = row.querySelector('.a-key').value.trim();
+                if(key) stats.push({
+                    key, val: parseInt(row.querySelector('.a-val').value)||0,
+                    max: parseInt(row.querySelector('.a-max').value)||0,
+                    isBar: row.querySelector('.a-isbar').checked,
+                    color: row.querySelector('.a-color').value
+                });
+            });
+            const newChar = { id: "char_" + Date.now(), name, role, stats };
+            appData.characters.unshift(newChar);
+            if(!appData.activeCharId) appData.activeCharId = newChar.id;
+            renderCharacterList(); saveToLocal(); closeAll(); document.getElementById('char-name').value=''; document.getElementById('char-class').value=''; initCreateCharModal();
+        }
+
+        // ================= 跑团内部：可操作的属性面板 =================
+        // 属性面板关闭时统一通报，避免每点一次都刷屏
+        let statSnapshot = null;
+        function captureStatSnapshot() {
+            const char = getActiveChar();
+            if(!char) { statSnapshot = null; return; }
+            statSnapshot = {
+                charId: char.id,
+                charName: char.name,
+                stats: char.stats.map(s => ({ key: s.key, val: parseInt(s.val) || 0 }))
+            };
+        }
+        function reportStatChanges() {
+            if(!statSnapshot) return;
+            const char = appData.characters.find(c => c.id === statSnapshot.charId);
+            if(!char) { statSnapshot = null; return; }
+            const changes = [];
+            char.stats.forEach((s, idx) => {
+                const before = statSnapshot.stats[idx];
+                if(!before || before.key !== s.key) return;
+                const oldVal = parseInt(before.val) || 0;
+                const newVal = parseInt(s.val) || 0;
+                const diff = newVal - oldVal;
+                if(diff !== 0) changes.push({ key:s.key, before:oldVal, after:newVal, diff });
+            });
+            if(changes.length) postSysStatChange(statSnapshot.charName, changes);
+            statSnapshot = null;
+        }
+        function postSysStatChange(charName, changes) {
+            const lines = changes.map(c => {
+                const word = c.diff > 0 ? '回复' : '扣除';
+                const abs = Math.abs(c.diff);
+                return `<div style="margin-top:3px;"><b>${escapeHtml(c.key)}</b> ${word} <span style="color:${c.diff > 0 ? '#2f7d44' : 'var(--red-btn)'}; font-weight:900;">${abs}</span> 点 <span style="color:#8a7156;">(${c.before} → ${c.after})</span></div>`;
+            }).join('');
+            const html = `<div class="sys-avatar">系统</div><div class="chat-bubble"><div style="font-size:12px; color:#888; margin-bottom:4px;">属性通报</div><span class="mention">@${escapeHtml(charName)}</span> 的属性发生变化：${lines}<div class="chat-time">${getTimeStr()}</div></div>`;
+            appendChat('system', html);
+        }
+
+        function renderLeftDrawer() {
+            const drawer = document.getElementById('drawer-left');
+            const char = getActiveChar();
+            if(!char) { drawer.innerHTML = `<h3 style="color:#666;">无角色</h3>`; return; }
+
+            let html = `<h3 style="border-bottom: 2px solid var(--gold-trim); padding-bottom:10px; margin-bottom:15px;">${escapeHtml(char.name)} <span style="font-size:12px; font-weight:normal; color:#666;">(${escapeHtml(char.role)})</span></h3>`;
+            
+            char.stats.forEach((s, idx) => {
+                const current = parseInt(s.val) || 0;
+                const max = parseInt(s.max) || 0;
+                if(s.isBar) {
+                    let pct = max > 0 ? Math.max(0, Math.min(100, (current / max)*100)) : 0;
+                    html += `
+                    <div class="stat-block">
+                        <div class="stat-row-title">
+                            <span class="stat-name">${escapeHtml(s.key)}</span>
+                            <div class="stat-controls">
+                                <button class="icon-btn" onpointerdown="startHoldStat(event, '${char.id}', ${idx}, -1)" onpointerup="stopHoldStat()" onpointercancel="stopHoldStat()" onpointerleave="stopHoldStat()">-</button>
+                                <input class="stat-input" type="number" value="${current}" onchange="setStat('${char.id}', ${idx}, this.value)">
+                                <span style="font-size:12px; color:#666;">/ ${max || '?'}</span>
+                                <button class="icon-btn" onpointerdown="startHoldStat(event, '${char.id}', ${idx}, 1)" onpointerup="stopHoldStat()" onpointercancel="stopHoldStat()" onpointerleave="stopHoldStat()">+</button>
+                            </div>
+                        </div>
+                        <div class="glass-tube" style="border-color:${s.color}">
+                            <div class="glass-glare"></div><div class="liquid-fill" style="width:${pct}%; background-color:${s.color}; color:${s.color};"></div><div class="bar-value-label">${current} / ${max || '?'}</div>
+                        </div>
+                    </div>`;
+                } else {
+                    html += `
+                    <div class="stat-block">
+                        <div class="stat-row-title" style="margin-bottom:0;">
+                            <span class="stat-name">${escapeHtml(s.key)}</span>
+                            <div class="stat-controls">
+                                <button class="icon-btn" onpointerdown="startHoldStat(event, '${char.id}', ${idx}, -1)" onpointerup="stopHoldStat()" onpointercancel="stopHoldStat()" onpointerleave="stopHoldStat()">-</button>
+                                <input class="stat-input" type="number" value="${current}" onchange="setStat('${char.id}', ${idx}, this.value)">
+                                <button class="icon-btn" onpointerdown="startHoldStat(event, '${char.id}', ${idx}, 1)" onpointerup="stopHoldStat()" onpointercancel="stopHoldStat()" onpointerleave="stopHoldStat()">+</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+            drawer.innerHTML = html;
+        }
+        
+        let holdTimer = null;
+        let holdStartAt = 0;
+        function startHoldStat(event, cId, idx, delta) {
+            event.preventDefault();
+            stopHoldStat();
+            holdStartAt = Date.now();
+            modStat(cId, idx, delta);
+            const run = () => {
+                const elapsed = Date.now() - holdStartAt;
+                const tier = elapsed > 3600 ? 5 : (elapsed > 2600 ? 4 : (elapsed > 1600 ? 3 : (elapsed > 800 ? 2 : 1)));
+                const step = [1, 1, 2, 4, 7, 10][tier];
+                const delay = [160, 130, 92, 62, 42, 30][tier];
+                modStat(cId, idx, delta * step);
+                holdTimer = setTimeout(run, delay);
+            };
+            holdTimer = setTimeout(run, 360);
+        }
+        function stopHoldStat() {
+            if(holdTimer) clearTimeout(holdTimer);
+            holdTimer = null;
+            holdStartAt = 0;
+        }
+
+        function modStat(cId, idx, delta) {
+            let c = appData.characters.find(x => x.id === cId);
+            if(!c || !c.stats[idx]) return;
+            c.stats[idx].val = (parseInt(c.stats[idx].val) || 0) + delta;
+            if(c.stats[idx].isBar && c.stats[idx].max > 0) c.stats[idx].val = Math.max(0, Math.min(c.stats[idx].val, c.stats[idx].max));
+            saveToLocal(); renderLeftDrawer(); renderCharacterList();
+        }
+        function setStat(cId, idx, val) {
+            let c = appData.characters.find(x => x.id === cId);
+            if(!c || !c.stats[idx]) return;
+            c.stats[idx].val = parseInt(val) || 0;
+            if(c.stats[idx].isBar && c.stats[idx].max > 0) c.stats[idx].val = Math.max(0, Math.min(c.stats[idx].val, c.stats[idx].max));
+            saveToLocal(); renderLeftDrawer(); renderCharacterList();
+        }
+
+        // ================= 聊天室与掷骰逻辑 =================
+        function sendMsg() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (!text) return;
+            sendPlayerText(text);
+            input.value = '';
+            input.focus();
+        }
+
+        function sendPlayerText(text) {
+            const char = getActiveChar();
+            const dName = char ? char.name : appData.profile.nickname;
+            const html = `<div class="player-msg-wrap"><div class="chat-name">${escapeHtml(dName)}</div><div class="chat-bubble">${escapeHtml(text)}<div class="chat-time">${getTimeStr()}</div></div></div><img class="chat-avatar" src="${appData.profile.avatar}">`;
+            if(navigator.vibrate && parseDiceCommand(text)) navigator.vibrate(12);
+            appendChat('player', html);
+            const roll = parseDiceCommand(text);
+            if(roll) setTimeout(() => executeDiceRoll(roll), 180);
+        }
+
+        function rollManualFromDrawer() {
+            const input = document.getElementById('manual-dice-input');
+            const cmd = input.value.trim();
+            if(!cmd) return;
+            sendPlayerText(cmd.startsWith('.') ? cmd : '.' + cmd);
+            closeAll();
+        }
+
+        function rollQuick(face) {
+            sendPlayerText(`.1d${face}`);
+            closeAll();
+        }
+
+        function rollCustom() {
+            let num = Math.max(1, parseInt(document.getElementById('c-num').value) || 1);
+            let face = Math.max(2, parseInt(document.getElementById('c-face').value) || 10);
+            sendPlayerText(`.${num}d${face}`);
+            closeAll();
+        }
+
+        function parseDiceCommand(text) {
+            const raw = text.trim().replace(/\s+/g, '').toLowerCase();
+            if(!raw.startsWith('.')) return null;
+            const expr = raw.slice(1);
+            if(!expr || expr.length > 80) return null;
+            if(!/^[+-]?(?:(?:\d*)d\d+|\d+)(?:[+-](?:(?:\d*)d\d+|\d+))*$/.test(expr)) return null;
+            const terms = expr.match(/[+-]?(?:(?:\d*)d\d+|\d+)/g) || [];
+            let diceCount = 0;
+            const parsedTerms = [];
+            for(const term of terms) {
+                const sign = term.startsWith('-') ? -1 : 1;
+                const body = term.replace(/^[+-]/, '');
+                if(body.includes('d')) {
+                    let [n, f] = body.split('d');
+                    let num = n === '' ? 1 : parseInt(n);
+                    let face = parseInt(f);
+                    if(!Number.isInteger(num) || !Number.isInteger(face) || num < 1 || face < 2 || num > 100 || face > 100000) return null;
+                    diceCount += num;
+                    parsedTerms.push({ type:'dice', sign, num, face });
+                } else {
+                    const value = parseInt(body);
+                    if(!Number.isInteger(value) || value > 1000000) return null;
+                    parsedTerms.push({ type:'const', sign, value });
+                }
+            }
+            if(diceCount < 1 || diceCount > 100) return null;
+            return { expr, terms: parsedTerms, diceCount };
+        }
+
+        function executeDiceRoll(roll) {
+            const results = [];
+            const details = [];
+            let total = 0;
+            roll.terms.forEach(term => {
+                if(term.type === 'dice') {
+                    const arr = [];
+                    for(let i=0; i<term.num; i++) {
+                        const r = Math.floor(Math.random() * term.face) + 1;
+                        arr.push(r);
+                        results.push(r);
+                        total += term.sign * r;
+                    }
+                    const signText = term.sign < 0 ? '-' : (details.length ? '+' : '');
+                    details.push(`${signText}${term.num}d${term.face}[${arr.join(',')}]`);
+                } else {
+                    total += term.sign * term.value;
+                    details.push(`${term.sign < 0 ? '-' : '+'}${term.value}`);
+                }
+            });
+            postSysRoll(roll.expr, details.join(' '), total, results, roll.diceCount);
+            playDiceAnimation(results, roll.diceCount);
+        }
+
+        function postSysRoll(expr, detail, total, diceResults, diceCount) {
+            const char = getActiveChar();
+            const dName = char ? char.name : appData.profile.nickname;
+            const animationTip = diceCount > 5 ? '<div style="font-size:12px; color:#888; margin-top:4px;">骰子较多时将自动省略重动画，保证聊天流畅。</div>' : '';
+            const html = `<div class="sys-avatar">系统</div><div class="chat-bubble"><div style="font-size:12px; color:#888; margin-bottom:4px;">系统裁决</div><span class="mention">@${escapeHtml(dName)}</span> 执行掷骰 <b>.${escapeHtml(expr)}</b><br><span style="color:#666; font-size:13px;">${escapeHtml(detail)}</span><br>最终结果：<span style="color:var(--red-btn); font-size:22px; font-weight:900;">${total}</span>${animationTip}<div class="chat-time">${getTimeStr()}</div></div>`;
+            appendChat('system', html);
+        }
+
+        function buildD20Html(value, isSmall=false, index=0) {
+            const faces = Array.from({length:20}, () => '<span class="ico-face"></span>').join('');
+            const delay = Math.min(index * 70, 260);
+            return `<div class="true-d20 ${isSmall ? 'small' : ''}" style="animation-delay:${delay}ms"><div class="d20-core">${faces}<div class="d20-number">${value}</div></div><div class="dice-impact-ring"></div></div>`;
+        }
+
+        function playDiceAnimation(results, diceCount) {
+            const stage = document.getElementById('dice-stage');
+            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const lowPower = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) || window.innerWidth < 380;
+            const maxAnimated = lowPower ? 3 : 5;
+            if(reduceMotion || diceCount > maxAnimated) {
+                stage.innerHTML = `<div class="dice-skip-toast">${diceCount} 枚骰子已快速结算，省略重动画</div>`;
+                stage.classList.add('active');
+                setTimeout(() => stage.classList.remove('active'), 760);
+                setTimeout(() => { if(!stage.classList.contains('active')) stage.innerHTML = ''; }, 980);
+                return;
+            }
+            const diceHtml = results.slice(0, maxAnimated).map((r, idx) => buildD20Html(r, diceCount > 1, idx)).join('');
+            stage.innerHTML = `<div class="dice-cloud">${diceHtml}</div>`;
+            stage.classList.add('active');
+            setTimeout(() => stage.classList.remove('active'), 1080);
+            setTimeout(() => { if(!stage.classList.contains('active')) stage.innerHTML = ''; }, 1280);
+        }
+
+        function appendChat(rowClass, innerHTML) {
+            const box = document.getElementById('chat-box');
+            const row = document.createElement('div');
+            row.className = `chat-row ${rowClass}`;
+            row.innerHTML = innerHTML;
+            box.appendChild(row);
+            box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+        }
+
+        function bindQualityOfLifeEvents() {
+            const msgInput = document.getElementById('msg-input');
+            if(msgInput) {
+                msgInput.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+                });
+            }
+            const manualInput = document.getElementById('manual-dice-input');
+            if(manualInput) {
+                manualInput.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') { e.preventDefault(); rollManualFromDrawer(); }
+                });
+            }
+            window.addEventListener('pointerup', stopHoldStat);
+            window.addEventListener('blur', stopHoldStat);
+        }
+
+        // 启动
+        window.onload = function(){ initApp(); bindQualityOfLifeEvents(); };
+    </script>
+<script src="/Static/js/jquery.js"></script><script src="/Static/js/Global.js"></script><script src="/Web/js/Global.js"></script><script src="/Web/js/SoruxGPT.js"></script></body>
+</html>
